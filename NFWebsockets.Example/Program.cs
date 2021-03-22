@@ -31,12 +31,12 @@ namespace NFWebsockets.Example
                 Debug.WriteLine($"Websocket server is up and running, connect on: ws://{ip}:{webSocketServer.Port}{webSocketServer.Prefix}");
 
                 //Now let's also attach a local websocket client. Just because we can :-)
-                WebSocketClient client = new WebSocketClient("wss://echo.websocket.org/");
-                //WebSocketClient client = new WebSocketClient("ws://127.0.0.1/echo");
+                //WebSocketClient client = new WebSocketClient("wss://echo.websocket.org/");
+                WebSocketClient client = new WebSocketClient("ws://127.0.0.1/echo");
                 client.MessageReceived += Client_MessageReceived;
                 while (client.IsOpen)
                 {
-                    client.SendMessage("hallo");
+                    client.SendMessage("hello");
                     Thread.Sleep(1000);
                 }
 

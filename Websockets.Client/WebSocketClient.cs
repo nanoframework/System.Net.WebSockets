@@ -69,8 +69,6 @@ namespace nanoframework.System.Net.Websockets.Client
 
             byte[] buffer = new byte[1024];
             _tcpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            //_tcpSocket.ReceiveTimeout = 1000;
-
 
             Stream stream = null;
             try
@@ -94,7 +92,7 @@ namespace nanoframework.System.Net.Websockets.Client
                         }
                         Debug.WriteLine($"{sslStream.Length}  bytes to read");
                         
-                    WebSocketClientConnect(sslStream, ep, prefix, Host);
+                    
                     stream = sslStream;
                     
                     }
@@ -108,7 +106,7 @@ namespace nanoframework.System.Net.Websockets.Client
                     Debug.WriteLine($"** Socket exception occurred: {ex.Message} error code {ex.ErrorCode}!**");
                 }
 
-            
+            WebSocketClientConnect(stream, ep, prefix, Host);
             _webSocket.ConnectionClosed += WebSocket_ConnectionClosed;
 
 
@@ -155,10 +153,9 @@ namespace nanoframework.System.Net.Websockets.Client
             SocketClosed?.Invoke(this, e);
         }
 
-        private void WebSocketClientConnect(SslStream stream, IPEndPoint remoteEndPoint, string prefix = "/", string host = null)
+        private void WebSocketClientConnect(Stream stream, IPEndPoint remoteEndPoint, string prefix = "/", string host = null)
         {
-            //stream.ReadTimeout = 2000;
-            if (prefix[0] != '/') throw new Exception("websocket prefix has to start with '/'");
+             if (prefix[0] != '/') throw new Exception("websocket prefix has to start with '/'");
 
 
             byte[] keyBuf = new byte[16];
@@ -192,22 +189,10 @@ namespace nanoframework.System.Net.Websockets.Client
                             Debug.WriteLine("Websocket Client connected");
                             correctHandshake = true;
 
-                            byte[] sendHallo = new byte[] { 0x81, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58 };
-                            stream.Write(sendHallo, 0, sendHallo.Length);
-                            Thread.Sleep(1000);
-                            int length = 7;
-                            //if (length > 0) {
-                            stream.ReadTimeout = 2000;
-                            while (true)
-                            {
-                                if (stream.DataAvailable)
-                                {
-                                    var bytesRead1 = stream.Read(sendHallo, 0, 7);
-                                    Debug.WriteLine($"bytes read = {bytesRead1} : {Encoding.UTF8.GetString(sendHallo, 2, length - 2)}");
-                                }
-                                
-                            }
-                            //}
+                            //byte[] sendHallo = new byte[] { 0x81, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58 };
+                            //stream.Write(sendHallo, 0, sendHallo.Length);
+
+                            
                         }
 
 
