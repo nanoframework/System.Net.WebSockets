@@ -13,7 +13,12 @@ namespace nanoframework.System.Net.Websockets.Server
         public int Max { get; private set; }
         private object _poolLock = new object();
         public int Count { get => _webSocketClients.Count; }
-        public ICollection List => _webSocketClients.Keys;
+        public IPEndPoint[] List {get => GetList();}
+
+             
+
+
+
 
         public WebSocketClientsPool(int maxClients)
         {
@@ -60,6 +65,15 @@ namespace nanoframework.System.Net.Websockets.Server
             return (WebSocket)_webSocketClients[endPoint];
         }
 
+        private IPEndPoint[] GetList()
+        {
+            lock (_poolLock)
+            {
+                IPEndPoint[] list = new IPEndPoint[_webSocketClients.Count];
+                _webSocketClients.Keys.CopyTo(list, _webSocketClients.Count);
+                return list;
+            }
+        }
 
     }
 }

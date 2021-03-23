@@ -26,7 +26,7 @@ namespace nanoframework.System.Net.Websockets.Server
         public int MaxSizeReceivePackage { get; private set; }
         public int HeartBeatSec { get; private set; }
         public int ClientsCount { get => _webSocketClientsPool.Count; }
-        public ICollection ListClients { get => _webSocketClientsPool.List; }
+        public IPEndPoint[] ListClients { get => _webSocketClientsPool.List; }
         public int FragmentSize { get; private set; } = 0;
 
 
