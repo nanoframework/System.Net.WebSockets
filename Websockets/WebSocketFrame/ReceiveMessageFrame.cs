@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using nanoframework.System.Net.Websockets.WebSocketFrame;
+using System.Net;
 
 namespace nanoframework.System.Net.Websockets
 {
@@ -13,5 +14,6 @@ namespace nanoframework.System.Net.Websockets
         public byte[] Masks { get; set; } = new byte[4];
         public ReceiveMessageStream MessageStream { get; set; }
 
+        internal WebSocketCloseStatus CloseStatus { get; set; } = WebSocketCloseStatus.Empty;
     }
 }

@@ -26,6 +26,10 @@
     <Compile Include="WebSocketFrame\ReceiveMessageFrame.cs" />
     <Compile Include="WebSocketFrame\ReceiveMessageStream.cs" />
     <Compile Include="WebSocketFrame\SendMessageFrame.cs" />
+    <Compile Include="WebSocketFrame\WebSocketCloseStatus.cs" />
+    <Compile Include="WebSocketFrame\WebSocketMessageType.cs" />
+    <Compile Include="WebSocketFrame\WebSocketOptions.cs" />
+    <Compile Include="WebSocketFrame\WebSocketState.cs" />
     <Compile Include="WebSocketHelpers.cs" />
     <Compile Include="WebSocketReceiver.cs" />
     <Compile Include="WebSocketReceiveThread.cs" />

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using nanoframework.System.Net.Websockets.WebSocketFrame;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -7,19 +8,62 @@ using System.Threading;
 
 namespace nanoframework.System.Net.Websockets
 {
-    public partial class WebSocket : IDisposable
+    public  partial  class WebSocket : IDisposable
     {
+        
+        //
+        // Summary:
+        //     The timeout which specifies how long to wait for a message before closing
+        //     the connection. Default is 60 seconds.
+        public TimeSpan ServerTimeout  { get; private set; } = new TimeSpan(0, 0, 60);
+
+        //
+        // Summary:
+        //     The interval that the client will send keep alive messages to let the
+        //     server know to not close the connection. Default is 30 second interval.
+
+        public TimeSpan KeepAliveInterval { get; private set; } = new TimeSpan(0, 0, 30);
+        
+        //
+        // Summary:
+        //     Gets the maximum allowed byte length of messages received by the WebSocket .
+        //
+        //  Returns:
+        //     The maximum allowed byte length of messages received by the WebSocket. Default is int.MaxValue.
+        public int MaxReceiveFrameSize { get; private set; } = int.MaxValue;
+
+        //
+        // Summary:
+        //     Gets or sets the maximum allowed byte length of a partial message send by the WebSocket.
+        //     By default if a message that exceeds the size limit it will be broken up in smaller partial messages
+        //     Default is 124 bytes
+        //
+        //  Returns:
+        //     The maximum allowed byte length of a partial message send by the WebSocket.
+        public int MaxFragmentSize { get; private set; } = 1024;
+
+
+
+        //
+        // Summary:
+        //     Gets the WebSocket state of the System.Net.WebSockets.ClientWebSocket instance.
+        //
+        // Returns:
+        //     The WebSocket state of the System.Net.WebSockets.ClientWebSocket instance.
+        public WebSocketState State { get; private set; }
+
 
         public delegate void MessageReceivedEventHandler(object sender, MessageReceivedEventArgs e);
         public event EventHandler ConnectionClosed;
-        public int MaxReceiveFrameSize { get; private set; }
+        
         public IPEndPoint RemotEndPoint { get; private set; }
-        public string url { get; private set; }
+        //public bool Closed { get; private set; } = false;
 
         private Stream _receiveStream;
         private Thread _receiveThread;
         private bool HasError = false;
-        public bool Closed { get; private set; } = false;
+
+
         //internal HttpListenerContext httpContext;
 
         //Mesage size can not be larger than int.MaxValue because that is the largest byte[] supported
@@ -33,71 +77,131 @@ namespace nanoframework.System.Net.Websockets
         //Reason for not reading the whole message and handing it off in an event is twofold. 1. bigger messages could make the device run out of memory 2. multiple messages and message fragments could get out of order. 
 
 
-        public WebSocket(Stream stream, IPEndPoint remoteEndPoint, MessageReceivedEventHandler messageReceivedCallBack, bool isServer = true, string prefix = "", int controllerMessagesTimeoutSec = 10, int maxReceiveFrameSize = int.MaxValue, int messageReadTimeoutMs = 100, int heartBeatSec = 0)
+
+
+        //
+        // Summary:
+        //     Creates an instance of the System.Net.WebSockets.WebSocket class.
+        private WebSocket() {
+        
+        }
+
+
+        //
+        // Summary:
+        //     Creates a new System.Net.WebSockets.WebSocket object that operates on the specified
+        //     stream, which represents a web socket connection.
+        //
+        // Parameters:
+        //   stream:
+        //     The stream for the connection.
+        //
+        //   isServer:
+        //     true to indicate it's the server-side of the connection; false if it's the client-side.
+        //
+        //   subProtocol:
+        //     The agreed upon sub-protocol that was used when creating the connection.
+        //
+        //   keepAliveInterval:
+        //     The keep-alive interval to use, or System.Threading.Timeout.InfiniteTimeSpan
+        //     to disable keep-alives.
+        //
+        // Returns:
+        //     The new web socket.
+
+        public WebSocket(Stream stream, bool isServer, IPEndPoint remoteEndPoint, MessageReceivedEventHandler messageReceivedCallBack, WebSocketOptions options = null )
         {
-            MessageReadTimeoutMs = messageReadTimeoutMs;
+            _receiveStream = stream;
+            IsServer = isServer;
             RemotEndPoint = remoteEndPoint;
             LastReceivedMessage = DateTime.UtcNow;
-            ControllerMessagesTimeoutSec = controllerMessagesTimeoutSec;
-            HeartBeatSec = heartBeatSec;
-            MaxReceiveFrameSize = maxReceiveFrameSize;
-            url = prefix;
-            IsServer = isServer;
-            _receiveStream = stream;
+
+            if (options != null)
+            {
+                ServerTimeout = options.ServerTimeout;
+                KeepAliveInterval = options.KeepAliveInterval;
+                MaxReceiveFrameSize = options.MaxReceiveFrameSize;
+                MaxFragmentSize = options.MaxFragmentSize;
+            }
+            
 
             //start server sending and receiving async
             _messageReceivedEventHandler = messageReceivedCallBack;
-            _webSocketReceiver = new WebSocketReceiver(stream, remoteEndPoint, this, IsServer, maxReceiveFrameSize, messageReadTimeoutMs, OnMessageRead, OnReadError);
+            _webSocketReceiver = new WebSocketReceiver(stream, remoteEndPoint, this, IsServer, MaxReceiveFrameSize, OnMessageRead, OnReadError);
             _webSocketSender = new WebSocketSender(stream, IsServer, OnWriteError);
             _receiveThread = new Thread(ReceiveAndControllThread);
             _receiveThread.Start();
 
         }
 
-
-
-        public bool SendString(string message, int fragmentSize = 0)
+      
+        // Parameters:
+        //   buffer:
+        //
+        //   messageType:
+        //
+        //  fragmentSize:
+        //      Override the maxFragmentSize used
+        //      Default -1 will use the maxFragmentSize 
+        public bool Send(byte[] buffer, WebSocketMessageType messageType, int fragmentSize = -1)
         {
             return QueueSendMessage(new SendMessageFrame()
             {
-                Buffer = Encoding.UTF8.GetBytes(message),
-                FragmentSize = fragmentSize,
-                OpCode = OpCode.TextFrame,
-
-
+                Buffer = buffer,
+                FragmentSize = fragmentSize < 0 ? MaxFragmentSize : fragmentSize,
+                OpCode = messageType == WebSocketMessageType.Text?  OpCode.TextFrame : OpCode.BinaryFrame
             });
         }
-
-        public bool SendBytes(byte[] data, int fragmentSize = 0)
+        public bool SendString(string message, int fragmentSize = -1)
         {
-            return QueueSendMessage(new SendMessageFrame()
-            {
-                Buffer = data,
-                FragmentSize = fragmentSize,
-                OpCode = OpCode.BinaryFrame,
-
-            });
+            return Send(Encoding.UTF8.GetBytes(message), WebSocketMessageType.Text, fragmentSize);
         }
 
-        public bool SendStream(Stream stream, int fragmentSize = 0)
+        public bool SendBytes(byte[] data, int fragmentSize = -1)
         {
-            throw new NotImplementedException();
+            return Send(data, WebSocketMessageType.Binary, fragmentSize);
         }
 
-        public void StopConnection(byte[] buffer = null, bool CloseImmediately = false)
+        public void Close(WebSocketCloseStatus closeStatus = WebSocketCloseStatus.Empty, string statusDescription = null)
+        {
+            if (State != WebSocketState.Open) return; //already closing or closed
+            State = WebSocketState.CloseSent;
+            _closingTime = DateTime.UtcNow;
+        }
+
+        //CloseImediately will Send a close message and not await this message. 
+        private void RawClose(WebSocketCloseStatus closeStatus = WebSocketCloseStatus.Empty, byte[] buffer = null, bool CloseImmediately = false)
         {
             //send closing message which needs to be awaited for a period
-            if (Closing) return;
+            if (State != WebSocketState.Open ) return; //already closing or closed
+            _closeStatus = closeStatus;
 
-            Closing = true;
-            _closingTime = DateTime.UtcNow;
+            byte[] sendBuffer = new byte[0];
+            if (!(closeStatus == WebSocketCloseStatus.ClosedAbnormally || closeStatus == WebSocketCloseStatus.Empty)) {
+                if (buffer == null)
+                {
+                    sendBuffer = new byte[2];
+                }
+                else if (buffer.Length > 125 - 2)
+                {
+                    sendBuffer = new byte[125];
+                    Array.Copy(buffer, 0, sendBuffer, 2, 125 - 2);
+                }
+                else
+                {
+                    sendBuffer = new byte[2 + buffer.Length];
+                    Array.Copy(buffer, 0, sendBuffer, 2, buffer.Length);
+                }
+
+                var closeStatusBytes = BitConverter.GetBytes((UInt16)closeStatus);
+                sendBuffer[0] = closeStatusBytes[1];
+                sendBuffer[1] = closeStatusBytes[0];
+            }
+
             QueueSendMessage(new SendMessageFrame()
             {
-
-                Buffer = buffer == null ? new byte[0] : buffer,
+                Buffer = sendBuffer,
                 OpCode = OpCode.ConnectionCloseFrame,
-
-
             });
 
             if (CloseImmediately)
@@ -107,31 +211,32 @@ namespace nanoframework.System.Net.Websockets
                 {
                     msWaited += 50;
                     Thread.Sleep(50);
+                    State = WebSocketState.CloseSent;
+                    _closingTime = DateTime.UtcNow;
                 }
-                CloseConnection();
+                HardClose();
             }
             
             
         }
 
-        private void CloseConnection(string message = null)
+        private void HardClose()
         {
-
+            State = WebSocketState.Closed;
             StopReceiving();
             are.Set();
             _webSocketSender.StopSender();
             Debug.WriteLine($"Connection - {RemotEndPoint.ToString()} - Closed");
+         
+            
             ConnectionClosed?.Invoke(this, new EventArgs());
-            Closed = true;
 
-            //TODO: Let WebSocketServer deal with connection
+            
         }
-
-
 
         private bool QueueSendMessage(SendMessageFrame frame)
         {
-            if (Closing && frame.OpCode != OpCode.ConnectionCloseFrame) //if connection is closing only a close respond can be send.
+            if (State != WebSocketState.Open && frame.OpCode != OpCode.ConnectionCloseFrame) //if connection is closing only a close respond can be send.
             {
                 Debug.WriteLine($"Connection - {RemotEndPoint.ToString()} - is closing cannot send messages");
                 return false;
@@ -148,8 +253,7 @@ namespace nanoframework.System.Net.Websockets
             {
                 HasError = true;
                 Debug.WriteLine($"{e.frame.EndPoint.ToString()} error - {e.ErrorMessage}");
-
-                CloseConnection(e.ErrorMessage);
+                RawClose(e.frame.CloseStatus, Encoding.UTF8.GetBytes(e.ErrorMessage), true);
             }
         }
 
@@ -160,15 +264,15 @@ namespace nanoframework.System.Net.Websockets
                 HasError = true;
                 Debug.WriteLine($"{e.frame.EndPoint.ToString()} error - {e.ErrorMessage}");
 
-                CloseConnection(e.ErrorMessage);
+                HardClose();
             }
         }
 
         public void Dispose()
         {
-            if (!Closed)
+            if (State != WebSocketState.Closed)
             {
-                CloseConnection();
+                HardClose();
             }
         }
     }

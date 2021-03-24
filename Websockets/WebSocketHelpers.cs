@@ -6,6 +6,7 @@ namespace nanoframework.System.Net.Websockets
 {
     public static class WebSocketHelpers
     {
+         
         internal static byte[] ReverseBytes(byte[] bytes)
         {
             byte[] returnBytes = new byte[bytes.Length];

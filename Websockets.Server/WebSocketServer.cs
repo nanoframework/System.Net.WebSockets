@@ -101,7 +101,7 @@ namespace nanoframework.System.Net.Websockets.Server
             var client = _webSocketClientsPool.Get(ipEndPoint);
             if (client != null)
             {
-                client.StopConnection();
+                client.Close();
             }
         }
 

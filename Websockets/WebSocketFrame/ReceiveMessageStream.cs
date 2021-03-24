@@ -41,17 +41,13 @@ namespace nanoframework.System.Net.Websockets
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            //if (count <= 0)
-            //{
-            //    _messageReadCallback?.Invoke(this, new EventArgs());
-            //    return 0;
-            //}
+
             if (count > _length) count = _length;
             int totalBytesRead = 0;
 
             while (totalBytesRead < count)
             {
-                if (_webSocket.Closing) break; //socket is closing so no more reading....
+                if (_webSocket.State != WebSocketFrame.WebSocketState.Closed) break; //TODO: what if socket is closing? not reading means final message is blocked. socket is closed so no more reading....
 
                 try
                 {
@@ -80,8 +76,9 @@ namespace nanoframework.System.Net.Websockets
                 }
                 catch(Exception ex)
                 {
-                    Debug.WriteLine(ex.Message);
-                    _messageFrame.ErrorMessage = ex.Message;
+                    Debug.WriteLine($"{_messageFrame.EndPoint} error reading message: {ex.Message}"); //error
+                    _messageFrame.ErrorMessage = "read error";
+                    _messageFrame.CloseStatus = WebSocketFrame.WebSocketCloseStatus.PolicyViolation; 
                     _websocketReadErrorCallBack?.Invoke(this, new WebSocketReadErrorArgs() { frame = _messageFrame });
 
                 }

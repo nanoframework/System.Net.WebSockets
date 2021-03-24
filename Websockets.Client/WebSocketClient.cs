@@ -25,6 +25,11 @@ namespace nanoframework.System.Net.Websockets.Client
         private WebSocket _webSocket;
         private Socket _tcpSocket;
 
+        //
+        // Summary:
+        //     The timeout which specifies how long to wait for the handshake to respond
+        //     before closing the connection. Default is 15 seconds.
+        public static TimeSpan DefaultHandshakeTimeout { get; private set; }
 
         public WebSocketClient(string url, SslProtocols sslProtocol = SslProtocols.Tls12, SslVerification sslVerification = SslVerification.NoVerification, X509Certificate certificate = null, int fragmentSize = 0)
         {
@@ -136,7 +141,7 @@ namespace nanoframework.System.Net.Websockets.Client
         {
             if(!_webSocket.Closing || !_webSocket.Closed)
             {
-                _webSocket.StopConnection(null, true);
+                _webSocket.Close(null, true);
                 if(_tcpSocket != null) _tcpSocket.Close();
 
             }
@@ -205,7 +210,7 @@ namespace nanoframework.System.Net.Websockets.Client
             }
 
             _webSocket = new WebSocket(stream, remoteEndPoint, OnMessageReceived, false);
-
+            
         }
 
         public void Dispose()

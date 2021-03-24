@@ -15,10 +15,6 @@ namespace nanoframework.System.Net.Websockets.Server
         public int Count { get => _webSocketClients.Count; }
         public IPEndPoint[] List {get => GetList();}
 
-             
-
-
-
 
         public WebSocketClientsPool(int maxClients)
         {

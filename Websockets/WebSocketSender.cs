@@ -177,7 +177,7 @@ namespace nanoframework.System.Net.Websockets
             int mesLength = fragmentationType == FragmentationType.NotFragmented ? frame.Buffer.Length : length;
             OpCode opcode = fragmentationType == FragmentationType.NotFragmented || fragmentationType == FragmentationType.FirstFragment ? frame.OpCode : OpCode.ContinuationFrame;
             int fin = fragmentationType == FragmentationType.NotFragmented || fragmentationType == FragmentationType.FinalFragment ? 128 : 0;
-            int mask = !_isServer && !frame.IsControllFrame ? 128 : 0;
+            int mask = !_isServer ? 128 : 0; 
             int messageOffset = 2;
 
             //set header
@@ -238,6 +238,7 @@ namespace nanoframework.System.Net.Websockets
             {
                 Debug.WriteLine(ex.Message);
                 frame.ErrorMessage = ex.Message;
+                CloseMessageSend = true; //can not send a close message because something is wrong with the write stream so no need to await this. 
                 _webSocketWriteErrorCallback?.Invoke(this, new WebSocketWriteErrorArgs() { frame = frame });
             }
 

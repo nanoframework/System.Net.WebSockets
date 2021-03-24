@@ -1,4 +1,5 @@
-﻿using System;
+﻿using nanoframework.System.Net.Websockets.WebSocketFrame;
+using System;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
@@ -9,9 +10,7 @@ namespace nanoframework.System.Net.Websockets
     {
         public DateTime LastReceivedMessage { get; private set; }
 
-        public int ControllerMessagesTimeoutSec { get; private set; }
-        public int HeartBeatSec { get; private set; }
-        public bool Closing { get; private set; }
+
         internal DateTime _closingTime = DateTime.UtcNow;
         public int MessageReadTimeoutMs { get; private set; }
 
@@ -34,6 +33,8 @@ namespace nanoframework.System.Net.Websockets
 
 
         private byte[] messageHeader = new byte[2];
+        private WebSocketCloseStatus _closeStatus = WebSocketCloseStatus.Empty;
+
         private void ReceiveAndControllThread() //this thread is always running and thus the best place for controlling ping and other messages
         {
             while (!_stopped)
@@ -50,8 +51,9 @@ namespace nanoframework.System.Net.Websockets
                     if (messageFrame.Error) //handle error
                     {
                         HasError = true;
-                        Debug.WriteLine(messageFrame.ErrorMessage);
-                        CloseConnection(messageFrame.ErrorMessage);
+                        Debug.WriteLine($"{RemotEndPoint} closed with error: {messageFrame.ErrorMessage}");
+                        RawClose(messageFrame.CloseStatus, Encoding.UTF8.GetBytes(messageFrame.ErrorMessage), true);
+                        
                         
                     }
                     else if (messageFrame.IsControllFrame)
@@ -72,16 +74,27 @@ namespace nanoframework.System.Net.Websockets
                                 _pinging = false; //checking if content pong matches ping is not implemented due to threadsafety and memoryconsumption considerations
                                 break;
                             case OpCode.ConnectionCloseFrame:
-                                
-                                if (!Closing)
+                                _closeStatus = WebSocketCloseStatus.Empty;
+                                if (buffer.Length > 1)
+                                {
+                                    byte[] closeByteCode = new byte[] { buffer[1], buffer[0] };
+                                    UInt16 statusCode = BitConverter.ToUInt16(closeByteCode, 0);
+                                    if (statusCode > 999 && statusCode < 1012) 
+                                    {
+                                        _closeStatus = (WebSocketCloseStatus)statusCode;
+                                    }
+                                }
+
+                                if (State != WebSocketFrame.WebSocketState.CloseSent)
                                 { //conection asked to be closed return awnser
-                                    StopConnection(buffer, true);
+                                    State = WebSocketFrame.WebSocketState.CloseReceived;
+                                    RawClose(WebSocketCloseStatus.NormalClosure, buffer = null, true);
                                     
                                 }
                                 else //response to conenction close we can shut down the socket.
                                 {
-                                    Closing = true;
-                                    CloseConnection("Gracefully closing");
+                                    
+                                    HardClose();
                                     
                                 }
                                 break;
@@ -95,24 +108,23 @@ namespace nanoframework.System.Net.Websockets
                 }
 
                 //Controlling ping and ControllerMessagesTimeout
-                if (_pinging && _pingTime.AddSeconds(ControllerMessagesTimeoutSec) < DateTime.UtcNow)
+                if (_pinging && _pingTime.Add(ServerTimeout ) < DateTime.UtcNow)
                 {
-                    CloseConnection("Ping timeout");
+                    RawClose(WebSocketCloseStatus.PolicyViolation, Encoding.UTF8.GetBytes("Ping timeout"), true);
+                    Debug.WriteLine($"{RemotEndPoint} ping timed out");
                 }
-                if (Closing && _closingTime.AddSeconds(ControllerMessagesTimeoutSec) < DateTime.UtcNow)
+                if (State == WebSocketFrame.WebSocketState.CloseSent && _closingTime.Add(ServerTimeout ) < DateTime.UtcNow)
                 {
-                    CloseConnection("Grace time for closing has ended");
+                    HardClose();
                 }
-                if (HeartBeatSec > 0 && !Closing && !_pinging && LastReceivedMessage.AddSeconds(HeartBeatSec) < DateTime.UtcNow)
+                if (KeepAliveInterval != Timeout.InfiniteTimeSpan && State != WebSocketFrame.WebSocketState.CloseSent && !_pinging && LastReceivedMessage.Add(KeepAliveInterval) < DateTime.UtcNow)
                 {
                     SendPing();
                 }
 
             }
 
-
             _receiveStream.Close();
-            Console.WriteLine($"ReceiveThread stopped");
         }
 
 
@@ -121,7 +133,7 @@ namespace nanoframework.System.Net.Websockets
             if (messageFrame.Error)
             {
                 Debug.WriteLine($"{RemotEndPoint.ToString()} error - {messageFrame.ErrorMessage}");
-                CloseConnection(messageFrame.ErrorMessage);
+                RawClose(messageFrame.CloseStatus, Encoding.UTF8.GetBytes(messageFrame.ErrorMessage), true);
             }
             else
             {
@@ -149,9 +161,6 @@ namespace nanoframework.System.Net.Websockets
         private void StopReceiving()
         {
             _stopped = true;
-            Closing = true;
-            
-
         }
 
         private void OnNewMessage(ReceiveMessageFrame message)
