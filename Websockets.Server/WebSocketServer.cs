@@ -60,7 +60,7 @@ namespace nanoframework.System.Net.Websockets.Server
         {
             if (string.IsNullOrEmpty(endPoint))
             {
-                Debug.WriteLine("how?");
+                Debug.WriteLine("endpoint should not be emtpy");
             }
             fragmentSize = fragmentSize < 0 ? FragmentSize : fragmentSize;
             var client = _webSocketClientsPool.Get(endPoint);
@@ -101,7 +101,7 @@ namespace nanoframework.System.Net.Websockets.Server
                 if(!string.IsNullOrEmpty(endPoint)) SendMessage(endPoint, message, fragmentSize);
                 else
                 {
-                    Debug.WriteLine("check it out");
+                    Debug.WriteLine("an empty endpoint? How come?");
                 }
             }
         }

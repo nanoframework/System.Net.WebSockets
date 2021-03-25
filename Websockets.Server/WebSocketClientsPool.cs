@@ -35,7 +35,7 @@ namespace nanoframework.System.Net.Websockets.Server
                     }
                     else
                     {
-                        Debug.WriteLine("heuh");
+                        Debug.WriteLine("try to enter a empty endpoint");
                     }
                     
                 }

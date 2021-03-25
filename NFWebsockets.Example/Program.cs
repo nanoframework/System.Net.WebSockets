@@ -2,6 +2,7 @@ using nanoframework.System.Net.Websockets;
 using nanoframework.System.Net.Websockets.Client;
 using nanoframework.System.Net.Websockets.Server;
 using System;
+using System.Collections;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Text;
@@ -15,6 +16,23 @@ namespace NFWebsockets.Example
     {
         public static void Main()
         {
+
+            //Hashtable testTable = new Hashtable(3);
+            //for (int i = 0; i < 3; i++)
+            //{
+            //    testTable.Add(i.ToString(), i);
+
+            //}
+
+            //string[] keys = new string[3];
+            //testTable.Keys.CopyTo(keys, 0);
+
+            //foreach (string key in keys)
+            //{
+            //    Debug.WriteLine(key);
+            //}
+
+
 
             string ip = CheckIP();
             //making sure your NFdevice has a network connetion
