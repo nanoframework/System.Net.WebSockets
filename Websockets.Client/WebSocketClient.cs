@@ -13,43 +13,65 @@ namespace nanoframework.System.Net.Websockets.Client
 {
     public class WebSocketClient : WebSocket, IDisposable
     {
-        //public event EventHandler SocketClosed;
-
-        //public event MessageReceivedEventHandler MessageReceived;
-        //public delegate void MessageReceivedEventHandler(object sender, MessageReceivedEventArgs e);
-        //public bool IsOpen { get => !_webSocket.Closing || !_webSocket.Closed; }
+        //
+        // Summary:
+        //     If a secure connection is used.
         public bool IsSSL { get; private set; } = false;
+        //
+        // Summary:
+        //     The remote Port to connect to.
         public int Port { get; private set; }
         public SslProtocols SslProtocol { get; private set; } = SslProtocols.Tls12;
+
+        //
+        // Summary:
+        //     The remote Host name to connect to.
         public string Host { get; private set; }
-        public SslVerification SslVerification { get; private set; } = SslVerification.NoVerification;
-        //private WebSocket _webSocket;
-        private Socket _tcpSocket;
-        private X509Certificate _certificate = null;
         public bool UseCustomCertificate => _certificate != null;
 
         //
         // Summary:
-        //     The timeout which specifies how long to wait for the handshake to respond
-        //     before closing the connection. Default is 15 seconds.
-        public static TimeSpan DefaultHandshakeTimeout { get; private set; }
+        //     The remote Prefix to connect to.
+        public string Prefix { get; private set; }
 
+        //
+        // Summary:
+        //     The type of SslVerification to use.
+        public SslVerification SslVerification { get; private set; } = SslVerification.NoVerification;
+        
+        private Socket _tcpSocket;
+        private X509Certificate _certificate = null;
+
+
+
+        //
+        // Summary:
+        //     Creates an instance of the System.Net.WebSockets.ClientWebSocket class.
         public WebSocketClient(ClientWebSocketOptions options = null) : base(options)
         {
             if(options != null)
             {
                 SslProtocol = options.SslProtocol;
-                IsSSL = options.IsSSL;
-                SslVerification = options.SslVerification;
-                _certificate = options._certificate;
+                 SslVerification = options.SslVerification;
+                _certificate = options.Certificate;
 
             }
         }
 
-        public void Connect(string url, MessageReceivedEventHandler messageReceivedHandler)
+        //
+        // Summary:
+        //     Connect to a WebSocket server.
+        //
+        // Parameters:
+        //   uri:
+        //     The URI of the WebSocket server to connect to.
+        //
+        //   messageReceivedHandler:
+        //      A handler that is called when the WebSocket server receives a message
+        public void Connect(string uri, MessageReceivedEventHandler messageReceivedHandler)
         {
             State = WebSocketFrame.WebSocketState.Connecting;
-            var splitUrl = url.ToLower().Split(new char[] { ':', '/', '/' }, 4);
+            var splitUrl = uri.ToLower().Split(new char[] { ':', '/', '/' }, 4);
             if (splitUrl.Length == 4 && splitUrl[0] == "ws") IsSSL = false;
             else if (splitUrl.Length == 4 && splitUrl[0] == "wss") IsSSL = true;
             else
@@ -64,6 +86,7 @@ namespace nanoframework.System.Net.Websockets.Client
             {
                 prefix += splitUrl[1];
             }
+            Prefix = prefix;
 
             Port = IsSSL ? 443 : 80;
 
@@ -191,6 +214,10 @@ namespace nanoframework.System.Net.Websockets.Client
             
         }
 
+        //
+        // Summary:
+        //     Releases the unmanaged resources used by the System.Net.WebSockets.ClientWebSocket
+        //     instance.
         public new void Dispose()
         {
             base.Dispose();

@@ -82,6 +82,10 @@ namespace nanoframework.System.Net.Websockets.Server
                 string[] list = new string[_webSocketClients.Count];
                 _webSocketClients.Keys.CopyTo(list, 0);
                 return list;
+                foreach(string key in _webSocketClients.Keys)
+                {
+                    if (string.IsNullOrEmpty(key)) Debug.WriteLine("empty key in the clientlist");
+                }
             }
         }
 
