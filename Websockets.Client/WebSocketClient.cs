@@ -132,127 +132,6 @@ namespace nanoframework.System.Net.Websockets.Client
             WebSocketClientConnect(stream, ep, messageReceivedHandler,prefix, Host);
             ConnectionClosed += WebSocket_ConnectionClosed;
         }
-        //public WebSocketClient(string url, SslProtocols sslProtocol = SslProtocols.Tls12, SslVerification sslVerification = SslVerification.NoVerification, X509Certificate certificate = null, int fragmentSize = 0)
-        //{
-
-        //    FragmentSize = fragmentSize;
-        //    IsSSL = false;
-        //    var splitUrl = url.ToLower().Split(new char[] { ':', '/', '/' },4);
-        //    if (splitUrl.Length == 4 && splitUrl[0] == "ws") IsSSL = false;
-        //    else if (splitUrl.Length == 4 && splitUrl[0] == "wss") IsSSL = true;
-        //    else
-        //    {
-        //        throw new Exception("websocket url should start with 'ws://' or 'wss://'");
-        //    }
-
-        //    string prefix = "/";
-
-        //    splitUrl = splitUrl[3].Split(new char[] { '/' }, 2);
-        //    if(splitUrl.Length == 2) {
-        //        prefix += splitUrl[1];
-        //    }
-
-        //    Port = IsSSL ? 443 : 80;
-
-        //    splitUrl = splitUrl[0].Split(new char[] { ':' }, 2);
-        //    Host = splitUrl[0];
-        //    if(splitUrl.Length == 2)
-        //    {
-        //        if(splitUrl[1].Length < 8)
-        //        {
-        //            try
-        //            {
-        //                Port = int.Parse(splitUrl[1]);
-        //            }catch(Exception ex)
-        //            {
-        //                throw new Exception("Something is wrong with the port number of the websocket url");
-        //            }
-        //        }
-
-        //    }
-
-        //    IPHostEntry hostEntry = Dns.GetHostEntry(Host);
-        //    IPEndPoint ep = new IPEndPoint(hostEntry.AddressList[0], Port);
-
-        //    byte[] buffer = new byte[1024];
-        //    _tcpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
-        //    Stream stream = null;
-        //    try
-        //    {
-
-        //        _tcpSocket.Connect(ep);
-        //        int datanum = _tcpSocket.Available;
-        //        if(datanum > 0)
-        //            _tcpSocket.Receive(buffer);
-        //        if (IsSSL)
-        //            {
-        //                SslStream sslStream = new SslStream(_tcpSocket);
-        //                sslStream.SslVerification = sslVerification;
-        //                if (sslVerification != SslVerification.NoVerification && certificate != null)
-        //                {
-        //                    sslStream.AuthenticateAsClient(Host, null, certificate, sslProtocol);
-        //                }
-        //                else
-        //                {
-        //                    sslStream.AuthenticateAsClient(Host, sslProtocol);
-        //                }
-        //                Debug.WriteLine($"{sslStream.Length}  bytes to read");
-
-
-        //            stream = sslStream;
-
-        //            }
-        //            else
-        //            {
-        //                stream = new NetworkStream(_tcpSocket);
-        //            }
-        //        }
-        //        catch (SocketException ex)
-        //        {
-        //            Debug.WriteLine($"** Socket exception occurred: {ex.Message} error code {ex.ErrorCode}!**");
-        //        }
-
-        //    WebSocketClientConnect(stream, ep, prefix, Host);
-        //    _webSocket.ConnectionClosed += WebSocket_ConnectionClosed;
-
-
-
-        //}
-
-
-
-
-
-
-
-        //public void SendMessage(string message, int fragmentSize = -1)
-        //{
-        //    fragmentSize = fragmentSize < 0 ? FragmentSize : fragmentSize;
-        //    _webSocket.SendString(message, fragmentSize);
-
-        //}
-        //public void SendMessage(byte[] buffer, int fragmentSize = -1)
-        //{
-        //    fragmentSize = fragmentSize < 0 ? FragmentSize : fragmentSize;
-        //    _webSocket.SendBytes(buffer, fragmentSize);
-
-        //}
-
-        //public void Close()
-        //{
-        //    if(!_webSocket.Closing || !_webSocket.Closed)
-        //    {
-        //        _webSocket.Close(null, true);
-        //        if(_tcpSocket != null) _tcpSocket.Close();
-
-        //    }
-        //}
-
-        //private void OnMessageReceived(object sender, MessageReceivedEventArgs e)
-        //{
-        //    MessageReceived?.Invoke(this, e);
-        //}
 
         private void WebSocket_ConnectionClosed(object sender, EventArgs e)
         {
@@ -309,7 +188,6 @@ namespace nanoframework.System.Net.Websockets.Client
             }
 
             ConnectToStream(stream, false, remoteEndPoint, messageReceivedHandler);
-            //_webSocket = new WebSocket(stream, remoteEndPoint, OnMessageReceived, false);
             
         }
 

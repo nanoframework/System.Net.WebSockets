@@ -10,10 +10,8 @@ namespace nanoframework.System.Net.Websockets
     {
         public DateTime LastReceivedMessage { get; private set; }
 
-
         internal DateTime _closingTime = DateTime.UtcNow;
-        public int MessageReadTimeoutMs { get; private set; }
-
+        
         public bool IsServer { get; private set; }
 
         private MessageReceivedEventHandler _messageReceivedEventHandler;
@@ -22,15 +20,10 @@ namespace nanoframework.System.Net.Websockets
         private WebSocketReceiver _webSocketReceiver;
         private WebSocketSender _webSocketSender;
 
-        //private Thread _receiveThread;
         private bool _pinging = false;
         private DateTime _pingTime = DateTime.UtcNow;
         private AutoResetEvent are = new AutoResetEvent(false);
         private bool _stopped = false;
-
-
-
-
 
         private byte[] messageHeader = new byte[2];
         private WebSocketCloseStatus _closeStatus = WebSocketCloseStatus.Empty;
