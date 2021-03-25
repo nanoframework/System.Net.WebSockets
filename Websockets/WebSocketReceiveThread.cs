@@ -50,8 +50,8 @@ namespace nanoframework.System.Net.Websockets
                 {
                     if (messageFrame.Error) //handle error
                     {
-                        HasError = true;
-                        Debug.WriteLine($"{RemotEndPoint} closed with error: {messageFrame.ErrorMessage}");
+                        _hasError = true;
+                        Debug.WriteLine($"{RemoteEndPoint} closed with error: {messageFrame.ErrorMessage}");
                         RawClose(messageFrame.CloseStatus, Encoding.UTF8.GetBytes(messageFrame.ErrorMessage), true);
                         
                         
@@ -111,7 +111,7 @@ namespace nanoframework.System.Net.Websockets
                 if (_pinging && _pingTime.Add(ServerTimeout ) < DateTime.UtcNow)
                 {
                     RawClose(WebSocketCloseStatus.PolicyViolation, Encoding.UTF8.GetBytes("Ping timeout"), true);
-                    Debug.WriteLine($"{RemotEndPoint} ping timed out");
+                    Debug.WriteLine($"{RemoteEndPoint} ping timed out");
                 }
                 if (State == WebSocketFrame.WebSocketState.CloseSent && _closingTime.Add(ServerTimeout ) < DateTime.UtcNow)
                 {
@@ -132,7 +132,7 @@ namespace nanoframework.System.Net.Websockets
         {
             if (messageFrame.Error)
             {
-                Debug.WriteLine($"{RemotEndPoint.ToString()} error - {messageFrame.ErrorMessage}");
+                Debug.WriteLine($"{RemoteEndPoint.ToString()} error - {messageFrame.ErrorMessage}");
                 RawClose(messageFrame.CloseStatus, Encoding.UTF8.GetBytes(messageFrame.ErrorMessage), true);
             }
             else

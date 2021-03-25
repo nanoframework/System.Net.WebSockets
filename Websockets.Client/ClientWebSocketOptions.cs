@@ -1,10 +1,12 @@
 ﻿using nanoframework.System.Net.Websockets.WebSocketFrame;
 using System;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace nanoframework.System.Net.Websockets.Client
 {
-    class ClientWebSocketOptions : WebSocketOptions
+    public class ClientWebSocketOptions : WebSocketOptions
     {
         ////
         //// Summary:
@@ -65,5 +67,10 @@ namespace nanoframework.System.Net.Websockets.Client
         ////   subProtocol:
         ////     The WebSocket sub-protocol to add.
         //public void AddSubProtocol(string subProtocol);
+        public SslProtocols SslProtocol { get; set; }
+        public bool IsSSL { get; set; } = false;
+        public SslVerification SslVerification { get; set; } = SslVerification.NoVerification;
+        public  X509Certificate _certificate { get; set; } = null;
+        public bool UseCustomCertificate => _certificate != null;
     }
 }

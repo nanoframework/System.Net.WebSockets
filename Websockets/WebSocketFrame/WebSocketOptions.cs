@@ -9,14 +9,14 @@ namespace nanoframework.System.Net.Websockets.WebSocketFrame
     //     Options to use with a System.Net.WebSockets.ClientWebSocket object.
     public class WebSocketOptions
     {
-        
+
         //
         // Summary:
         //     Gets or sets the WebSocket protocol keep-alive interval.
         //
         // Returns:
         //     The WebSocket protocol keep-alive interval.
-        public TimeSpan KeepAliveInterval { get; set; }
+        public TimeSpan KeepAliveInterval { get; set; } = new TimeSpan(0,0,60);
 
         //
         // Summary:
@@ -24,7 +24,7 @@ namespace nanoframework.System.Net.Websockets.WebSocketFrame
         //
         //  Returns:
         //     The WebSocket timeout which specifies how long to wait for a message.
-        public TimeSpan ServerTimeout { get; set; }
+        public TimeSpan ServerTimeout { get; set; } = new TimeSpan(0,0,30);
 
         //
         // Summary:

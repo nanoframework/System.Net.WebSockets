@@ -6,7 +6,7 @@ using System.Threading;
 using System.Net.Sockets;
 using System.Diagnostics;
 using nanoframework.System.Net.Websockets;
-
+using nanoframework.System.Net.Websockets.WebSocketFrame;
 
 namespace nanoframework.System.Net.Websockets.Server
 {
@@ -17,61 +17,66 @@ namespace nanoframework.System.Net.Websockets.Server
         public delegate void MessageReceivedEventhandler(object sender, MessageReceivedEventArgs e);
         public delegate void WebSocketOpenedEventhandler(object sender, WebSocketOpenedEventArgs e);
         public delegate void WebSocketClosedEventhandler(object sender, WebSocketClosedEventArgs e);
-        public event MessageReceivedEventhandler MesageReceived;
+        public event MessageReceivedEventhandler MessageReceived;
         public event WebSocketOpenedEventhandler WebSocketOpened;
         public event WebSocketClosedEventhandler WebSocketClosed;
-        public int MaxClients { get; private set; }
-        public int ControllerMessageTimeoutSec { get; private set; }
-        public int MessageReadTimeoutMS { get; private set; }
-        public int MaxSizeReceivePackage { get; private set; }
-        public int HeartBeatSec { get; private set; }
+        public int MaxClients => _options.MaxClients;
+        public TimeSpan ServerTimeout => _options.ServerTimeout;
+        public int MaxReceiveFrameSize => _options.MaxReceiveFrameSize;
+        public TimeSpan KeepAliveInterval => _options.KeepAliveInterval;
         public int ClientsCount { get => _webSocketClientsPool.Count; }
-        public IPEndPoint[] ListClients { get => _webSocketClientsPool.List; }
-        public int FragmentSize { get; private set; } = 0;
-
-
-        public string Prefix { get; private set; }
-        public int Port { get; private set; }
-        public bool Stopped { get; private set; } = false;
-        public string ServerName {get; private set;}
+        public int FragmentSize => _options.MaxFragmentSize;
+        public string Prefix => _options.Prefix;
+        public int Port => _options.Port;
+        
+        public string ServerName => _options.ServerName;
+        public bool Started { get; private set; } = false;
+        public string[] ListClients { get => _webSocketClientsPool.List; }
 
         private WebSocketClientsPool _webSocketClientsPool;
         private Thread _listnerThread;
-        private bool _stopping = false;
 
+        private WebSocketServerOptions _options = new WebSocketServerOptions();
 
-        public WebSocketServer(int port = 80,  string prefix = "/", string serverName = "NFWebsocketServer", int maxClients = 10, int heartBeatSec = 30, int controllerMessageTimeoutSec = 10,  int fragmentSize = 0, int messageReadTimeoutMs = 100, int maxSizeReceivePackage = int.MaxValue)
+        public WebSocketServer(WebSocketServerOptions options = null)
         {
-            if (prefix[0] != '/') throw new Exception("websocket prefix has to start with '/'");
-            MaxClients = maxClients;
-            _webSocketClientsPool = new WebSocketClientsPool(maxClients);
-            HeartBeatSec = heartBeatSec;
-            ControllerMessageTimeoutSec = controllerMessageTimeoutSec;
-            MaxSizeReceivePackage = maxSizeReceivePackage;
-            HeartBeatSec = heartBeatSec;
-            MessageReadTimeoutMS = messageReadTimeoutMs;
-            FragmentSize = fragmentSize;
-            Prefix = prefix;
-            Port = port;
-            ServerName = serverName;
+            if(options != null)
+            {
+                if (options.Prefix[0] != '/') throw new Exception("websocket prefix has to start with '/'");
+                _options = options;
+            }
+            _webSocketClientsPool = new WebSocketClientsPool(MaxClients);
+        }
+        public void Start()
+        {
+            Started = true;
             _listnerThread = new Thread(ListenIncommingSocketRequest);
             _listnerThread.Start();
-        
+            
+
         }
 
-        public void SendMessage(IPEndPoint endpoint, string message, int fragmentSize = -1)
+        public void SendMessage(string endPoint, string message, int fragmentSize = -1)
         {
+            if (string.IsNullOrEmpty(endPoint))
+            {
+                Debug.WriteLine("how?");
+            }
             fragmentSize = fragmentSize < 0 ? FragmentSize : fragmentSize;
-            var client = _webSocketClientsPool.Get(endpoint);
+            var client = _webSocketClientsPool.Get(endPoint);
             if (client != null)
             {
                 client.SendString(message, fragmentSize);
             }
         }
-        public void SendMessage(IPEndPoint endpoint, byte[] buffer, int fragmentSize = -1)
+        public void SendMessage(string endPoint, byte[] buffer, int fragmentSize = -1)
         {
+            if (string.IsNullOrEmpty(endPoint))
+            {
+                Debug.WriteLine("how?");
+            }
             fragmentSize = fragmentSize < 0 ? FragmentSize : fragmentSize;
-            var client = _webSocketClientsPool.Get(endpoint);
+            var client = _webSocketClientsPool.Get(endPoint);
             if (client != null)
             {
                 client.SendBytes(buffer, fragmentSize);
@@ -81,7 +86,7 @@ namespace nanoframework.System.Net.Websockets.Server
         public void BroadCast(byte[] buffer, int fragmentSize = -1)
         {
             fragmentSize = fragmentSize < 0? FragmentSize : fragmentSize;
-            foreach (IPEndPoint endPoint in _webSocketClientsPool.List)
+            foreach (string endPoint in _webSocketClientsPool.List)
             {
                 SendMessage(endPoint, buffer, fragmentSize);
             }
@@ -90,34 +95,59 @@ namespace nanoframework.System.Net.Websockets.Server
         public void BroadCast(string message, int fragmentSize = -1)
         {
             fragmentSize = fragmentSize < 0 ? FragmentSize : fragmentSize;
-            foreach (IPEndPoint endPoint in _webSocketClientsPool.List)
+            var list = _webSocketClientsPool.List;
+            foreach (string endPoint in list)
             {
-                SendMessage(endPoint, message, fragmentSize);
-            }
-        }
-
-        public void StopClient(IPEndPoint ipEndPoint)
-        {
-            var client = _webSocketClientsPool.Get(ipEndPoint);
-            if (client != null)
-            {
-                client.Close();
-            }
-        }
-
-        public void StopServer()
-        {
-            _stopping = true;
-            if (!Stopped)
-            {
-                
-                foreach (IPEndPoint endPoint in _webSocketClientsPool.List)
+                if(!string.IsNullOrEmpty(endPoint)) SendMessage(endPoint, message, fragmentSize);
+                else
                 {
-                    StopClient(endPoint);
+                    Debug.WriteLine("check it out");
+                }
+            }
+        }
+
+        public void DisconnectClient(string endPoint, WebSocketCloseStatus closeStatus, bool abort = false)
+        {
+            if (string.IsNullOrEmpty(endPoint))
+            {
+                Debug.WriteLine("how?");
+            }
+            var client = _webSocketClientsPool.Get(endPoint);
+            if (client != null)
+                if (abort)
+                {
+                    client.Abort();
+                }
+                else
+                {
+                    client.Close(closeStatus);
                 }
             }
 
-            Stopped = true;
+
+   
+
+        public void Stop()
+        {
+            if (Started)
+            {
+                Started = false;
+
+                foreach (string endPoint in _webSocketClientsPool.List)
+                {
+                    DisconnectClient(endPoint, WebSocketCloseStatus.EndpointUnavailable);
+                }
+            }
+            
+        }
+
+        public void Abort()
+        {
+            Started = false;
+            foreach (string endPoint in _webSocketClientsPool.List)
+            {
+                DisconnectClient(endPoint, WebSocketCloseStatus.EndpointUnavailable, true);
+            }
         }
 
 
@@ -129,7 +159,7 @@ namespace nanoframework.System.Net.Websockets.Server
             {
                 mySocket.Bind(listenPoint);
                 Debug.WriteLine("websocket server Started!");
-                while (!_stopping)
+                while (Started)
                 {
                     mySocket.Listen(2);
 
@@ -178,9 +208,10 @@ namespace nanoframework.System.Net.Websockets.Server
                             byte[] response = Encoding.UTF8.GetBytes($"HTTP/1.1 101 Web Socket Protocol Handshake\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: {swkaSha1Base64}\r\nServer: {ServerName}\r\nUpgrade: websocket\r\n\r\n");
                             networkStream.Write(response, 0, response.Length);
 
-                            var webSocketClient = new WebSocket(networkStream, (IPEndPoint)networkSocket.RemoteEndPoint, onMessageReceived, true, prefix, MessageReadTimeoutMS, MaxSizeReceivePackage, ControllerMessageTimeoutSec, HeartBeatSec);
+                            var webSocketClient = new WebSocketServerClient(_options);
+                            webSocketClient.ConnectToStream(networkStream, (IPEndPoint)networkSocket.RemoteEndPoint, onMessageReceived);
                             if(_webSocketClientsPool.Add(webSocketClient)) { //check if clients are not full again
-                                WebSocketOpened?.Invoke(this, new WebSocketOpenedEventArgs() { EndPoint = webSocketClient.RemotEndPoint });
+                                WebSocketOpened?.Invoke(this, new WebSocketOpenedEventArgs() { EndPoint = webSocketClient.RemoteEndPoint });
                                 webSocketClient.ConnectionClosed += OnConnectionClosed;
                             }
                             else
@@ -211,19 +242,15 @@ namespace nanoframework.System.Net.Websockets.Server
         private void OnConnectionClosed(object sender, EventArgs e)
         {
 
-            var endPoint = ((WebSocket)sender).RemotEndPoint;
+            var endPoint = ((WebSocket)sender).RemoteEndPoint;
             WebSocketClosed?.Invoke(this, new WebSocketClosedEventArgs() { EndPoint = endPoint});
-            _webSocketClientsPool.Remove(endPoint);
+            _webSocketClientsPool.Remove(endPoint.ToString());
         }
 
         private void onMessageReceived(object sender, MessageReceivedEventArgs e)
         {
-            MesageReceived?.Invoke(this, e);
+            MessageReceived?.Invoke(this, e);
         }
-    
-        
-
-
 
         public class WebSocketOpenedEventArgs : EventArgs
         {
@@ -237,46 +264,9 @@ namespace nanoframework.System.Net.Websockets.Server
 
         public void Dispose()
         {
-            StopServer();
+            Stop();
         }
     }
 }
 
 
-//public bool HandleWesocketRequest(HttpListenerContext handshake)
-//{
-//    if (handshake.Request.Headers["Upgrade"].ToLower() == "websocket" && handshake.Request.Headers["Connection"].ToLower() == "upgrade")
-//    {
-//        string swk = handshake.Request.Headers["Sec-WebSocket-Key"];
-//        if (swk != null) //a valid websocket request
-//        {
-//            if (_webSocketClientsPool.Count <= MaxClients)
-//            {
-//                handshake.AcceptWebSocketAsync("test");
-//                string swka = swk + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"; //default signature for websocket
-//                byte[] swkaSha1 = SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(swka));
-//                string swkaSha1Base64 = Convert.ToBase64String(swkaSha1);
-
-//                byte[] response = Encoding.UTF8.GetBytes($"HTTP/1.1 101 Web Socket Protocol Handshake\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: {swkaSha1Base64}\r\nServer: Kaazing Gateway\r\nUpgrade: websocket\r\n\r\n");
-//                var length = handshake.Response.OutputStream.Length;
-//                handshake.Response.StatusCode = 101;
-//                handshake.Response.Headers.Clear();
-//                handshake.Response.OutputStream.Write(response, 0, response.Length);
-
-//                _webSocketClientsPool.Add(handshake.Request.RemoteEndPoint, new WebSocket(handshake, true, MessageReadTimeoutMS, MaxSizeReceivePackage, ControllerMessageTimeoutSec, HeartBeatSec));
-//                Console.WriteLine("connected  socket");
-//                return true;
-
-//            }
-//            else
-//            {
-
-//                throw new NotImplementedException();
-//                //error 503 server full?
-//            }
-
-//        }
-//    }
-
-//    return false;
-//}

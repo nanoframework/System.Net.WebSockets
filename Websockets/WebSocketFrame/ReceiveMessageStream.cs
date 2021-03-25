@@ -47,14 +47,14 @@ namespace nanoframework.System.Net.Websockets
 
             while (totalBytesRead < count)
             {
-                if (_webSocket.State != WebSocketFrame.WebSocketState.Closed) break; //TODO: what if socket is closing? not reading means final message is blocked. socket is closed so no more reading....
+                if (_webSocket.State == WebSocketFrame.WebSocketState.Closed || _webSocket.State == WebSocketFrame.WebSocketState.Aborted) break; //TODO: what if socket is closing? not reading means final message is blocked. socket is closed so no more reading....
 
                 try
                 {
                     int bytesAvailable = (int)_messageInputStream.Length;
                     int bytesRead = 0;
                     if (bytesAvailable > 0) {
-                        bytesRead = _messageInputStream.Read(buffer, totalBytesRead, (count - totalBytesRead < bytesAvailable ? bytesAvailable : count - totalBytesRead) );  //only get available bytes so we don't timeout. 
+                        bytesRead = _messageInputStream.Read(buffer, totalBytesRead, (count - totalBytesRead > bytesAvailable ? bytesAvailable : count - totalBytesRead) );  //only get available bytes so we don't timeout. 
                     
                     }
 
@@ -74,11 +74,11 @@ namespace nanoframework.System.Net.Websockets
 
                     totalBytesRead += bytesRead;
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Debug.WriteLine($"{_messageFrame.EndPoint} error reading message: {ex.Message}"); //error
                     _messageFrame.ErrorMessage = "read error";
-                    _messageFrame.CloseStatus = WebSocketFrame.WebSocketCloseStatus.PolicyViolation; 
+                    _messageFrame.CloseStatus = WebSocketFrame.WebSocketCloseStatus.PolicyViolation;
                     _websocketReadErrorCallBack?.Invoke(this, new WebSocketReadErrorArgs() { frame = _messageFrame });
 
                 }

@@ -50,18 +50,18 @@ namespace nanoframework.System.Net.Websockets
         //
         // Returns:
         //     The WebSocket state of the System.Net.WebSockets.ClientWebSocket instance.
-        public WebSocketState State { get; private set; }
+        public WebSocketState State { get; protected set; } = WebSocketState.Closed;
 
 
         public delegate void MessageReceivedEventHandler(object sender, MessageReceivedEventArgs e);
         public event EventHandler ConnectionClosed;
         
-        public IPEndPoint RemotEndPoint { get; private set; }
+        public IPEndPoint RemoteEndPoint { get; private set; }
         //public bool Closed { get; private set; } = false;
 
         private Stream _receiveStream;
         private Thread _receiveThread;
-        private bool HasError = false;
+        private bool _hasError = false;
 
 
         //internal HttpListenerContext httpContext;
@@ -78,18 +78,23 @@ namespace nanoframework.System.Net.Websockets
 
 
 
+        protected WebSocket( WebSocketOptions options = null)
+        {
+            if (options != null)
+            {
+                ServerTimeout = options.ServerTimeout;
+                KeepAliveInterval = options.KeepAliveInterval;
+                MaxReceiveFrameSize = options.MaxReceiveFrameSize;
+                MaxFragmentSize = options.MaxFragmentSize;
+            }
 
-        //
-        // Summary:
-        //     Creates an instance of the System.Net.WebSockets.WebSocket class.
-        private WebSocket() {
-        
+
         }
 
 
         //
         // Summary:
-        //     Creates a new System.Net.WebSockets.WebSocket object that operates on the specified
+        //     Connects the Websocket to  the specified
         //     stream, which represents a web socket connection.
         //
         // Parameters:
@@ -106,31 +111,22 @@ namespace nanoframework.System.Net.Websockets
         //     The keep-alive interval to use, or System.Threading.Timeout.InfiniteTimeSpan
         //     to disable keep-alives.
         //
-        // Returns:
-        //     The new web socket.
 
-        public WebSocket(Stream stream, bool isServer, IPEndPoint remoteEndPoint, MessageReceivedEventHandler messageReceivedCallBack, WebSocketOptions options = null )
+
+        protected void ConnectToStream(Stream stream, bool isServer, IPEndPoint remoteEndPoint, MessageReceivedEventHandler messageReceivedHandler)
         {
             _receiveStream = stream;
             IsServer = isServer;
-            RemotEndPoint = remoteEndPoint;
+            RemoteEndPoint = remoteEndPoint;
             LastReceivedMessage = DateTime.UtcNow;
 
-            if (options != null)
-            {
-                ServerTimeout = options.ServerTimeout;
-                KeepAliveInterval = options.KeepAliveInterval;
-                MaxReceiveFrameSize = options.MaxReceiveFrameSize;
-                MaxFragmentSize = options.MaxFragmentSize;
-            }
-            
-
             //start server sending and receiving async
-            _messageReceivedEventHandler = messageReceivedCallBack;
+            _messageReceivedEventHandler = messageReceivedHandler;
             _webSocketReceiver = new WebSocketReceiver(stream, remoteEndPoint, this, IsServer, MaxReceiveFrameSize, OnMessageRead, OnReadError);
             _webSocketSender = new WebSocketSender(stream, IsServer, OnWriteError);
             _receiveThread = new Thread(ReceiveAndControllThread);
             _receiveThread.Start();
+            State = WebSocketState.Open;
 
         }
 
@@ -167,13 +163,20 @@ namespace nanoframework.System.Net.Websockets
             if (State != WebSocketState.Open) return; //already closing or closed
             State = WebSocketState.CloseSent;
             _closingTime = DateTime.UtcNow;
+            RawClose(closeStatus, statusDescription == null ? null : Encoding.UTF8.GetBytes(statusDescription), closeStatus == WebSocketCloseStatus.EndpointUnavailable);
+        }
+
+        public void Abort()
+        {
+            State = WebSocketState.Aborted;
+            HardClose(); 
         }
 
         //CloseImediately will Send a close message and not await this message. 
         private void RawClose(WebSocketCloseStatus closeStatus = WebSocketCloseStatus.Empty, byte[] buffer = null, bool CloseImmediately = false)
         {
             //send closing message which needs to be awaited for a period
-            if (State != WebSocketState.Open ) return; //already closing or closed
+            if (!(State == WebSocketState.Open || State == WebSocketState.CloseReceived)) return; //already closing or closed
             _closeStatus = closeStatus;
 
             byte[] sendBuffer = new byte[0];
@@ -226,7 +229,7 @@ namespace nanoframework.System.Net.Websockets
             StopReceiving();
             are.Set();
             _webSocketSender.StopSender();
-            Debug.WriteLine($"Connection - {RemotEndPoint.ToString()} - Closed");
+            Debug.WriteLine($"Connection - {RemoteEndPoint.ToString()} - Closed");
          
             
             ConnectionClosed?.Invoke(this, new EventArgs());
@@ -238,10 +241,10 @@ namespace nanoframework.System.Net.Websockets
         {
             if (State != WebSocketState.Open && frame.OpCode != OpCode.ConnectionCloseFrame) //if connection is closing only a close respond can be send.
             {
-                Debug.WriteLine($"Connection - {RemotEndPoint.ToString()} - is closing cannot send messages");
+                Debug.WriteLine($"Connection - {RemoteEndPoint.ToString()} - is closing cannot send messages");
                 return false;
             }
-            frame.EndPoint = RemotEndPoint;
+            frame.EndPoint = RemoteEndPoint;
             _webSocketSender.QueueMessage(frame);
             return true;
 
@@ -249,9 +252,9 @@ namespace nanoframework.System.Net.Websockets
 
         private void OnReadError(object sender, WebSocketReadErrorArgs e)
         {
-            if (!HasError)
+            if (!_hasError)
             {
-                HasError = true;
+                _hasError = true;
                 Debug.WriteLine($"{e.frame.EndPoint.ToString()} error - {e.ErrorMessage}");
                 RawClose(e.frame.CloseStatus, Encoding.UTF8.GetBytes(e.ErrorMessage), true);
             }
@@ -259,9 +262,9 @@ namespace nanoframework.System.Net.Websockets
 
         private void OnWriteError(object sender, WebSocketWriteErrorArgs e)
         {
-            if (!HasError)
+            if (!_hasError)
             {
-                HasError = true;
+                _hasError = true;
                 Debug.WriteLine($"{e.frame.EndPoint.ToString()} error - {e.ErrorMessage}");
 
                 HardClose();

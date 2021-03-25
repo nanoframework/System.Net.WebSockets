@@ -20,23 +20,23 @@ namespace NFWebsockets.Example
             //making sure your NFdevice has a network connetion
             if (ip != string.Empty)
             {
-
+                //TODO implement extra options for headers, protocl etc
 
 
                 //Lets create a server that listens on port 80 and excepts maximum of 5 clients
-                WebSocketServer webSocketServer = new WebSocketServer(80, "/echo", "testServer", 5);
-
+                WebSocketServer webSocketServer = new WebSocketServer();
+                webSocketServer.Start();
                 //Let's echo all incomming messages from clients to all connected clients including the sender. 
-                webSocketServer.MesageReceived += WebSocketServer_MesageReceived;
+                webSocketServer.MessageReceived += WebSocketServer_MesageReceived;
                 Debug.WriteLine($"Websocket server is up and running, connect on: ws://{ip}:{webSocketServer.Port}{webSocketServer.Prefix}");
 
                 //Now let's also attach a local websocket client. Just because we can :-)
                 //WebSocketClient client = new WebSocketClient("wss://echo.websocket.org/");
-                WebSocketClient client = new WebSocketClient("ws://127.0.0.1/echo");
-                client.MessageReceived += Client_MessageReceived;
-                while (client.IsOpen)
+                WebSocketClient client = new WebSocketClient();
+                client.Connect("ws://127.0.0.1", Client_MessageReceived);
+                while (client.State == nanoframework.System.Net.Websockets.WebSocketFrame.WebSocketState.Open)
                 {
-                    client.SendMessage("hello");
+                    client.SendString("hello");
                     Thread.Sleep(1000);
                 }
 
@@ -52,12 +52,12 @@ namespace NFWebsockets.Example
         {
             Byte[] buffer = new Byte[e.Frame.MessageLength];
             e.Frame.MessageStream.Read(buffer, 0, buffer.Length);
-            if (e.Frame.OpCode == OpCode.TextFrame)
+            if (e.Frame.MessageType == nanoframework.System.Net.Websockets.WebSocketFrame.WebSocketMessageType.Text)
             {
                 Debug.WriteLine($"received websocket message: {Encoding.UTF8.GetString(buffer, 0, buffer.Length)}");
 
             }
-            else if (e.Frame.OpCode == OpCode.BinaryFrame)
+            else 
             {
                 Debug.WriteLine("received websocket data");
             }
@@ -65,15 +65,16 @@ namespace NFWebsockets.Example
 
         private static void WebSocketServer_MesageReceived(object sender, MessageReceivedEventArgs e)
             {
+            
                 var webSocketServer = (WebSocketServer)sender;
                 Byte[] buffer = new Byte[e.Frame.MessageLength];
                 e.Frame.MessageStream.Read(buffer, 0, buffer.Length);
-                if (e.Frame.OpCode == OpCode.TextFrame)
+                if (e.Frame.MessageType == nanoframework.System.Net.Websockets.WebSocketFrame.WebSocketMessageType.Text)
                 {
                     webSocketServer.BroadCast(Encoding.UTF8.GetString(buffer, 0, buffer.Length));
 
                 }
-                else if (e.Frame.OpCode == OpCode.BinaryFrame)
+                else 
                 {
                     webSocketServer.BroadCast(buffer);
                 }
