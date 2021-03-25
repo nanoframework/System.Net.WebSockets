@@ -39,6 +39,31 @@ namespace nanoframework.System.Net.Websockets
             throw new NotImplementedException();
         }
 
+        // Summary:
+        //     Reads a sequence of bytes from the current ReceiveMessageStream
+        //     and advances the position within the stream by the number of bytes read.
+        //
+        // Parameters:
+        //   buffer:
+        //     An array of bytes. When this method returns, the buffer contains the specified
+        //     byte array with the values between offset and (offset + count - 1) replaced by
+        //     the bytes read from the current source.
+        //
+        //   offset:
+        //     The zero-based byte offset in buffer at which to begin storing the data read
+        //     from the current stream.
+        //
+        //   count:
+        //     The maximum number of bytes to be read from the current stream.
+        //
+        // Returns:
+        //     The total number of bytes read into the buffer. This can be less than the number
+        //     of bytes requested if that many bytes are not currently available, or zero (0)
+        //     if the end of the stream has been reached.
+        //
+        // Remarks:
+        //     The WebSocket will stop to receive any incoming messages including controller messages until 
+        //     the stream is completely read till the end. 
         public override int Read(byte[] buffer, int offset, int count)
         {
 

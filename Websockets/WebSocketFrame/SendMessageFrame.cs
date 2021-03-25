@@ -1,6 +1,6 @@
 ﻿namespace nanoframework.System.Net.Websockets
 {
-    public class SendMessageFrame : MessageFrame
+    internal class SendMessageFrame : MessageFrame
     {
         public byte[] Buffer { get; set; }
         public int FragmentSize { get; set; } = 0;

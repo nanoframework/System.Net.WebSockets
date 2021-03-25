@@ -8,23 +8,16 @@ namespace nanoframework.System.Net.Websockets
 {
     partial class WebSocket
     {
-        public DateTime LastReceivedMessage { get; private set; }
+        
 
         internal DateTime _closingTime = DateTime.UtcNow;
-        
-        public bool IsServer { get; private set; }
-
-        private MessageReceivedEventHandler _messageReceivedEventHandler;
-
-        
+        private MessageReceivedEventHandler _messageReceivedEventHandler;       
         private WebSocketReceiver _webSocketReceiver;
         private WebSocketSender _webSocketSender;
-
         private bool _pinging = false;
         private DateTime _pingTime = DateTime.UtcNow;
         private AutoResetEvent are = new AutoResetEvent(false);
         private bool _stopped = false;
-
         private byte[] messageHeader = new byte[2];
         private WebSocketCloseStatus _closeStatus = WebSocketCloseStatus.Empty;
 
@@ -54,7 +47,7 @@ namespace nanoframework.System.Net.Websockets
                         byte[] buffer = new byte[messageFrame.MessageLength];
                         messageFrame.MessageStream.Read(buffer, 0, messageFrame.MessageLength);
 
-                        LastReceivedMessage = DateTime.UtcNow;
+                        LastContact = DateTime.UtcNow;
                         switch (messageFrame.OpCode)
                         {
                             case OpCode.PingFrame: //send Pong
@@ -110,7 +103,7 @@ namespace nanoframework.System.Net.Websockets
                 {
                     HardClose();
                 }
-                if (KeepAliveInterval != Timeout.InfiniteTimeSpan && State != WebSocketFrame.WebSocketState.CloseSent && !_pinging && LastReceivedMessage.Add(KeepAliveInterval) < DateTime.UtcNow)
+                if (KeepAliveInterval != Timeout.InfiniteTimeSpan && State != WebSocketFrame.WebSocketState.CloseSent && !_pinging && LastContact.Add(KeepAliveInterval) < DateTime.UtcNow)
                 {
                     SendPing();
                 }
@@ -130,7 +123,7 @@ namespace nanoframework.System.Net.Websockets
             }
             else
             {
-                LastReceivedMessage = DateTime.UtcNow;
+                LastContact = DateTime.UtcNow;
                 OnNewMessage(messageFrame);
 
                 are.WaitOne();
@@ -168,8 +161,5 @@ namespace nanoframework.System.Net.Websockets
         }
     }
 
-    public class MessageReceivedEventArgs : EventArgs
-    {
-        public ReceiveMessageFrame Frame { get; set; }
-    }
+
 }

@@ -10,27 +10,86 @@ using nanoframework.System.Net.Websockets.WebSocketFrame;
 
 namespace nanoframework.System.Net.Websockets.Server
 {
-
+    //
+    // Summary:
+    //     The WebSocketServer class is a WebSocket Server to which WebSocket Clients can connect.
     public class WebSocketServer : IDisposable
     {
 
         public delegate void MessageReceivedEventhandler(object sender, MessageReceivedEventArgs e);
         public delegate void WebSocketOpenedEventhandler(object sender, WebSocketOpenedEventArgs e);
         public delegate void WebSocketClosedEventhandler(object sender, WebSocketClosedEventArgs e);
+
+        //
+        // Summary:
+        //     Occurs when a message is received by the server. The argument contains the received message frame. 
+        //
+        // Remarks:
+        //     The WebSocketServer will stop to receiving any incoming messages including controller messages until 
+        //     the included MessageStream is completely read till the end. 
         public event MessageReceivedEventhandler MessageReceived;
+
+        //
+        // Summary:
+        //     Occurs when a new Client is connected. The argument contains the connected clients endpoint.
         public event WebSocketOpenedEventhandler WebSocketOpened;
+
+        //
+        // Summary:
+        //     Occurs when a Client is disconnected. The argument contains the disconnected clients endpoint.
         public event WebSocketClosedEventhandler WebSocketClosed;
+
+        //
+        // Summary:
+        //     The maximum number of clients that can connect to the server.
         public int MaxClients => _options.MaxClients;
+
+        //
+        // Summary:
+        //     The WebSocketServer timeout which specifies how long to wait for a message.
         public TimeSpan ServerTimeout => _options.ServerTimeout;
+
+        // Summary:
+        //     The maximum allowed byte length of messages received by the WebSocket .
         public int MaxReceiveFrameSize => _options.MaxReceiveFrameSize;
+
+        // Summary:
+        //     The WebSocketServer protocol keep-alive interval.
         public TimeSpan KeepAliveInterval => _options.KeepAliveInterval;
+
+        // Summary:
+        //     The number of Clients connected to the WebSocketServer.
         public int ClientsCount { get => _webSocketClientsPool.Count; }
+
+        //
+        // Summary:
+        //     Gets the maximum allowed byte length of a partial message send by the WebSocketServer.
+        //     By default if a message that exceeds the size limit it will be broken up in smaller partial messages
         public int FragmentSize => _options.MaxFragmentSize;
+
+        //
+        // Summary:
+        //     The remote Prefix clients need to connect to.
         public string Prefix => _options.Prefix;
+
+        //
+        // Summary:
+        //     The local Port to listen on.
         public int Port => _options.Port;
-        
+
+        //
+        // Summary:
+        //     The server name that is presented to the client during the handshake
         public string ServerName => _options.ServerName;
+
+        //
+        // Summary:
+        //     True, server is started. False, means server is not active.
         public bool Started { get; private set; } = false;
+
+        //
+        // Summary:
+        //     Gets an array of all connected client IPEndPoints.
         public string[] ListClients { get => _webSocketClientsPool.List; }
 
         private WebSocketClientsPool _webSocketClientsPool;
@@ -38,6 +97,13 @@ namespace nanoframework.System.Net.Websockets.Server
 
         private WebSocketServerOptions _options = new WebSocketServerOptions();
 
+        //
+        // Summary:
+        //     Creates an instance of the System.Net.WebSockets.WebSocketServer class.
+        //
+        // Parameters:
+        //     options:
+        //          Optional WebSocketServerOptions where extra options can be defined.
         public WebSocketServer(WebSocketServerOptions options = null)
         {
             if(options != null)
@@ -47,6 +113,12 @@ namespace nanoframework.System.Net.Websockets.Server
             }
             _webSocketClientsPool = new WebSocketClientsPool(MaxClients);
         }
+
+
+
+        //
+        // Summary:
+        //     Starts the server.
         public void Start()
         {
             Started = true;
@@ -56,7 +128,25 @@ namespace nanoframework.System.Net.Websockets.Server
 
         }
 
-        public void SendMessage(string endPoint, string message, int fragmentSize = -1)
+        // Summary:
+        //     Sends a text message to the specified client
+        //
+        // Parameters:
+        //   endPoint:
+        //     The IP endpoint of the connected client.
+        //
+        //   message:
+        //     The text message.
+        //
+        //  fragmentSize:
+        //      Override the maxFragmentSize used
+        //      Default -1 will use the maxFragmentSize 
+        //
+        // Remarks:
+        //     Messages are buffered send synchronously using a single send thread.
+        //     The send message is not awaited. 
+
+        public void SendText(string endPoint, string message, int fragmentSize = -1)
         {
             if (string.IsNullOrEmpty(endPoint))
             {
@@ -69,7 +159,25 @@ namespace nanoframework.System.Net.Websockets.Server
                 client.SendString(message, fragmentSize);
             }
         }
-        public void SendMessage(string endPoint, byte[] buffer, int fragmentSize = -1)
+
+        // Summary:
+        //     Sends a binary message to the specified client
+        //
+        // Parameters:
+        //   endPoint:
+        //     The IP endpoint of the connected client.
+        //
+        //   buffer:
+        //     The data content of the message.
+        //
+        //  fragmentSize:
+        //      Override the maxFragmentSize used
+        //      Default -1 will use the maxFragmentSize 
+        //
+        // Remarks:
+        //     Messages are buffered send synchronously using a single send thread.
+        //     The send message is not awaited. 
+        public void SendData(string endPoint, byte[] buffer, int fragmentSize = -1)
         {
             if (string.IsNullOrEmpty(endPoint))
             {
@@ -83,22 +191,50 @@ namespace nanoframework.System.Net.Websockets.Server
             }
         }
 
+        // Summary:
+        //      Broadcast a binary message to all connected clients
+        //
+        // Parameters:
+        //   buffer:
+        //     The data content of the message.
+        //
+        //  fragmentSize:
+        //      Override the maxFragmentSize used
+        //      Default -1 will use the maxFragmentSize 
+        //
+        // Remarks:
+        //     Messages are buffered send synchronously using a single send thread.
+        //     The send message is not awaited. 
         public void BroadCast(byte[] buffer, int fragmentSize = -1)
         {
             fragmentSize = fragmentSize < 0? FragmentSize : fragmentSize;
             foreach (string endPoint in _webSocketClientsPool.List)
             {
-                SendMessage(endPoint, buffer, fragmentSize);
+                SendData(endPoint, buffer, fragmentSize);
             }
         }
 
+        // Summary:
+        //     Broadcast a text message to all connected clients
+        //
+        // Parameters:
+        //   message:
+        //     The text message.
+        //
+        //  fragmentSize:
+        //      Override the maxFragmentSize used
+        //      Default -1 will use the maxFragmentSize 
+        //
+        // Remarks:
+        //     Messages are buffered send synchronously using a single send thread.
+        //     The send message is not awaited. 
         public void BroadCast(string message, int fragmentSize = -1)
         {
             fragmentSize = fragmentSize < 0 ? FragmentSize : fragmentSize;
             var list = _webSocketClientsPool.List;
             foreach (string endPoint in list)
             {
-                if(!string.IsNullOrEmpty(endPoint)) SendMessage(endPoint, message, fragmentSize);
+                if(!string.IsNullOrEmpty(endPoint)) SendText(endPoint, message, fragmentSize);
                 else
                 {
                     Debug.WriteLine("an empty endpoint? How come?");
@@ -106,6 +242,24 @@ namespace nanoframework.System.Net.Websockets.Server
             }
         }
 
+        // Summary:
+        //     Will start closing the WebSocket connection to the client using
+        //     handshake defined in the WebSocket protocol specification section 7.
+        //     After connection is closed the client will be removed from the clientpool
+        //
+        // Parameters:
+        //   endPoint:
+        //     The IP endpoint of the connected client.
+        //
+        //   closeStatus:
+        //     Indicates the reason for closing the WebSocket connection.
+        //
+        //   abort:
+        //     Optional, set to true to direct abort client connection in contrary to close connection
+        //     using WebSocket protocol section 7.
+        //
+        // Remarks:
+        //     WebSocketCloseStatus.EndpointUnavailable will close the WebSocket synchronous without awaiting response.
         public void DisconnectClient(string endPoint, WebSocketCloseStatus closeStatus, bool abort = false)
         {
             if (string.IsNullOrEmpty(endPoint))
@@ -125,8 +279,10 @@ namespace nanoframework.System.Net.Websockets.Server
             }
 
 
-   
 
+        //
+        // Summary:
+        //     Stops the server and disconnects all connected clients with code WebSocketCloseStatus.EndpointUnavailable. 
         public void Stop()
         {
             if (Started)
@@ -141,6 +297,9 @@ namespace nanoframework.System.Net.Websockets.Server
             
         }
 
+        //
+        // Summary:
+        //     Aborts the server and all WebSocket connections and any pending IO operations.
         public void Abort()
         {
             Started = false;
@@ -252,20 +411,42 @@ namespace nanoframework.System.Net.Websockets.Server
             MessageReceived?.Invoke(this, e);
         }
 
-        public class WebSocketOpenedEventArgs : EventArgs
-        {
-            public IPEndPoint EndPoint;
-        }
 
-        public class WebSocketClosedEventArgs : EventArgs
-        {
-            public IPEndPoint EndPoint;
-        }
-
+        // Summary:
+        //     Releases the unmanaged resources used by the System.Net.WebSockets.WebSocketServer
+        //     instance.
         public void Dispose()
         {
-            Stop();
+            if (Started)
+            {
+                Started = false;
+
+                foreach (string endPoint in _webSocketClientsPool.List)
+                {
+                    DisconnectClient(endPoint, WebSocketCloseStatus.EndpointUnavailable, true);
+                }
+            }
         }
+    }
+
+    //
+    // Summary:
+    //     EventArgs used for WebSocketOpenedEventHandler
+    public class WebSocketOpenedEventArgs : EventArgs
+    {
+        // Summary:
+        //     The Remote Endpoint that is Opened.
+        public IPEndPoint EndPoint;
+    }
+
+    //
+    // Summary:
+    //     EventArgs used for WebSocketClosedEventHandler
+    public class WebSocketClosedEventArgs : EventArgs
+    {
+        // Summary:
+        //     The Remote Endpoint that is closed.
+        public IPEndPoint EndPoint;
     }
 }
 

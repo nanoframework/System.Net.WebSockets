@@ -11,6 +11,9 @@ using System.Threading;
 
 namespace nanoframework.System.Net.Websockets.Client
 {
+    //
+    // Summary:
+    //     The WebSocketClient can connect to a WebSocket Server.
     public class WebSocketClient : WebSocket, IDisposable
     {
         //
@@ -47,6 +50,10 @@ namespace nanoframework.System.Net.Websockets.Client
         //
         // Summary:
         //     Creates an instance of the System.Net.WebSockets.ClientWebSocket class.
+        //
+        // Parameters:
+        //     options:
+        //          Optional ClientWebSocketOptions where extra options can be defined.
         public WebSocketClient(ClientWebSocketOptions options = null) : base(options)
         {
             if(options != null)

@@ -36,7 +36,8 @@ namespace nanoframework.System.Net.Websockets.WebSocketFrame
 
         //
         // Summary:
-        //     Gets or sets the maximum allowed byte length of a partial message send by the WebSocket. By default if a message that exceeds the size limit it will be broken up in smaller partial messages
+        //     Gets or sets the maximum allowed byte length of a partial message send by the WebSocket.
+        //     By default if a message that exceeds the size limit it will be broken up in smaller partial messages
         //
         //  Returns:
         //     The maximum allowed byte length of a partial message send by the WebSocket.

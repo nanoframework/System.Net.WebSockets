@@ -8,9 +8,20 @@ using System.Threading;
 
 namespace nanoframework.System.Net.Websockets
 {
-    public  partial  class WebSocket : IDisposable
+    //
+    // Summary:
+    //     The WebSocket class allows applications to send and receive data after the WebSocket
+    //     upgrade has completed.
+    public partial  class WebSocket : IDisposable
     {
-        
+        //
+        // Summary:
+        //     true to indicate it's the server-side of the connection; false if it's the client-side.
+        public bool IsServer { get; private set; }
+        //
+        // Summary:
+        //     The UTC time of the last received message or Controller message  
+        public DateTime LastContact { get; private set; }
         //
         // Summary:
         //     The timeout which specifies how long to wait for a message before closing
@@ -42,8 +53,6 @@ namespace nanoframework.System.Net.Websockets
         //     The maximum allowed byte length of a partial message send by the WebSocket.
         public int MaxFragmentSize { get; private set; } = 1024;
 
-
-
         //
         // Summary:
         //     Gets the WebSocket state of the System.Net.WebSockets.ClientWebSocket instance.
@@ -52,32 +61,45 @@ namespace nanoframework.System.Net.Websockets
         //     The WebSocket state of the System.Net.WebSockets.ClientWebSocket instance.
         public WebSocketState State { get; protected set; } = WebSocketState.Closed;
 
+        // Summary:
+        //     Occurs when a message is received. Controller messages are handled internally and 
+        //     do not raise an event.
+        // Remarks:
+        //     The WebSocket will stop to receive any incoming messages including controller messages until 
+        //     the provided ReceiveMessageStream is completely read till the end. 
 
         public delegate void MessageReceivedEventHandler(object sender, MessageReceivedEventArgs e);
-        public event EventHandler ConnectionClosed;
         
+        
+        // Summary:
+        //     Occurs when the connection is closed. The connection could be closed due to an
+        //     error or due to either the server or client intentionally closing the connection
+        //     without error.
+        //
+        public event EventHandler ConnectionClosed;
+
+
+        // Summary:
+        //     Gets the Remote Endpoint where the WebSocket connects to.
+        //
+        // Returns:
+        //     The Remote Endpoint where the WebSocket connects to.
         public IPEndPoint RemoteEndPoint { get; private set; }
-        //public bool Closed { get; private set; } = false;
+        
 
         private Stream _receiveStream;
         private Thread _receiveThread;
         private bool _hasError = false;
 
 
-        //internal HttpListenerContext httpContext;
-
-        //Mesage size can not be larger than int.MaxValue because that is the largest byte[] supported
-        //no action should ben undertaken on errors so no event is raised. 
-        //Will garbage collector dispose of connection??
-        //Data server to client is not masked
-        //Pong is not responded on. 
-        //also create a websocket using networkStream
-        //create a websocket that listens on ws:// using sockets and streams. 
-        //There is a receiving stream that receives only the header of the next message and hands off the message stream in a callback. the thread will stop and start when complete message stream is read
-        //Reason for not reading the whole message and handing it off in an event is twofold. 1. bigger messages could make the device run out of memory 2. multiple messages and message fragments could get out of order. 
-
-
-
+        
+        //
+        // Summary:
+        //     Creates an instance of the System.Net.WebSockets.WebSocket class.
+        //
+        // Parameters:
+        //     options:
+        //          Optional WebSocketOptions where extra options can be defined.
         protected WebSocket( WebSocketOptions options = null)
         {
             if (options != null)
@@ -94,7 +116,7 @@ namespace nanoframework.System.Net.Websockets
 
         //
         // Summary:
-        //     Connects the Websocket to  the specified
+        //     Connects the WebSocket to  the specified
         //     stream, which represents a web socket connection.
         //
         // Parameters:
@@ -104,21 +126,19 @@ namespace nanoframework.System.Net.Websockets
         //   isServer:
         //     true to indicate it's the server-side of the connection; false if it's the client-side.
         //
-        //   subProtocol:
-        //     The agreed upon sub-protocol that was used when creating the connection.
+        //   remoteEndPoint:
+        //     The Remote Endpoint where the WebSocket connects to.
         //
-        //   keepAliveInterval:
-        //     The keep-alive interval to use, or System.Threading.Timeout.InfiniteTimeSpan
-        //     to disable keep-alives.
-        //
-
+        //   messageReceivedHandler:
+        //     A handler that is used when a message is received. Controller messages are handled internally. 
+        //     
 
         protected void ConnectToStream(Stream stream, bool isServer, IPEndPoint remoteEndPoint, MessageReceivedEventHandler messageReceivedHandler)
         {
             _receiveStream = stream;
             IsServer = isServer;
             RemoteEndPoint = remoteEndPoint;
-            LastReceivedMessage = DateTime.UtcNow;
+            LastContact = DateTime.UtcNow;
 
             //start server sending and receiving async
             _messageReceivedEventHandler = messageReceivedHandler;
@@ -130,15 +150,24 @@ namespace nanoframework.System.Net.Websockets
 
         }
 
-      
+        // Summary:
+        //     Sends data over the System.Net.WebSockets.WebSocket connection..
+        //
         // Parameters:
         //   buffer:
+        //     The buffer containing the message content.
         //
         //   messageType:
+        //     Indicates whether the application is sending a binary or text message.
         //
         //  fragmentSize:
         //      Override the maxFragmentSize used
         //      Default -1 will use the maxFragmentSize 
+        //
+        // Remarks:
+        //     Messages are buffered send synchronously using a single send thread.
+        //     The send message is not awaited.
+
         public bool Send(byte[] buffer, WebSocketMessageType messageType, int fragmentSize = -1)
         {
             return QueueSendMessage(new SendMessageFrame()
@@ -148,16 +177,59 @@ namespace nanoframework.System.Net.Websockets
                 OpCode = messageType == WebSocketMessageType.Text?  OpCode.TextFrame : OpCode.BinaryFrame
             });
         }
+
+        // Summary:
+        //      Sends a text message over the System.Net.WebSockets.WebSocket connection..
+        //
+        // Parameters:
+        //   message:
+        //      The text that will be send
+        //
+        //  fragmentSize:
+        //      Override the maxFragmentSize used
+        //      Default -1 will use the maxFragmentSize 
+        //
+        // Remarks:
+        //     Messages are buffered send synchronously using a single send thread.
+        //     The send message is not awaited.
         public bool SendString(string message, int fragmentSize = -1)
         {
             return Send(Encoding.UTF8.GetBytes(message), WebSocketMessageType.Text, fragmentSize);
         }
 
+        // Summary:
+        //      Sends a binary message over the System.Net.WebSockets.WebSocket connection..
+        //
+        // Parameters:
+        //   data:
+        //      The binary data that will be send.
+        //
+        //  fragmentSize:
+        //      Override the maxFragmentSize used
+        //      Default -1 will use the maxFragmentSize 
+        //
+        // Remarks:
+        //     Messages are buffered send synchronously using a single send thread.
+        //     The send message is not awaited.
         public bool SendBytes(byte[] data, int fragmentSize = -1)
         {
             return Send(data, WebSocketMessageType.Binary, fragmentSize);
         }
 
+        // Summary:
+        //     Will start closing the WebSocket connection using the close
+        //     handshake defined in the WebSocket protocol specification section 7.
+        //
+        // Parameters:
+        //   closeStatus:
+        //     Indicates the reason for closing the WebSocket connection.
+        //
+        //   statusDescription:
+        //     Specifies a human readable explanation as to why the connection is closed.
+        //
+        // Remarks:
+        //     WebSocketCloseStatus.EndpointUnavailable will close the WebSocket synchronous without awaiting response.
+        
         public void Close(WebSocketCloseStatus closeStatus = WebSocketCloseStatus.Empty, string statusDescription = null)
         {
             if (State != WebSocketState.Open) return; //already closing or closed
@@ -165,7 +237,10 @@ namespace nanoframework.System.Net.Websockets
             _closingTime = DateTime.UtcNow;
             RawClose(closeStatus, statusDescription == null ? null : Encoding.UTF8.GetBytes(statusDescription), closeStatus == WebSocketCloseStatus.EndpointUnavailable);
         }
-
+        
+        //
+        // Summary:
+        //     Aborts the WebSocket connection and cancels any pending IO operations.
         public void Abort()
         {
             State = WebSocketState.Aborted;
@@ -271,6 +346,10 @@ namespace nanoframework.System.Net.Websockets
             }
         }
 
+        //
+        // Summary:
+        //     Releases the unmanaged resources used by the System.Net.WebSockets.WebSocket
+        //     instance.
         public void Dispose()
         {
             if (State != WebSocketState.Closed)
@@ -278,5 +357,15 @@ namespace nanoframework.System.Net.Websockets
                 HardClose();
             }
         }
+    }
+   
+    //
+    // Summary:
+    //     EventArgs used for MessageReceivedEventHandler
+    public class MessageReceivedEventArgs : EventArgs
+    {
+        // Summary:
+        //     The message frame received by the WebSocket. 
+        public ReceiveMessageFrame Frame { get; set; }
     }
 }
