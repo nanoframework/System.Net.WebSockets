@@ -1,6 +1,6 @@
 ﻿namespace nanoframework.System.Net.Websockets
 {
-    public enum OpCode
+    internal enum OpCode
     {
         ContinuationFrame = 0,
         TextFrame = 1,
