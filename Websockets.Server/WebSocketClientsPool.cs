@@ -61,18 +61,16 @@ namespace nanoframework.System.Net.Websockets.Server
 
         public bool Contains(string endPoint)
         {
-            lock (_poolLock)
-            {
-                return _webSocketClients.Contains(endPoint.ToString());
-            }
+
+            return _webSocketClients.Contains(endPoint.ToString());
+            
         }
 
         public WebSocket Get(string endPoint)
         {
-            lock (_poolLock)
-            {
-                return (WebSocket)_webSocketClients[endPoint];
-            }
+
+            return (WebSocket)_webSocketClients[endPoint];
+  
         }
 
         private string[] GetList()
@@ -82,10 +80,7 @@ namespace nanoframework.System.Net.Websockets.Server
                 string[] list = new string[_webSocketClients.Count];
                 _webSocketClients.Keys.CopyTo(list, 0);
                 return list;
-                foreach(string key in _webSocketClients.Keys)
-                {
-                    if (string.IsNullOrEmpty(key)) Debug.WriteLine("empty key in the clientlist");
-                }
+
             }
         }
 

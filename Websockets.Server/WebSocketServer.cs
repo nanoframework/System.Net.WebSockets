@@ -148,10 +148,6 @@ namespace nanoframework.System.Net.Websockets.Server
 
         public void SendText(string endPoint, string message, int fragmentSize = -1)
         {
-            if (string.IsNullOrEmpty(endPoint))
-            {
-                Debug.WriteLine("endpoint should not be emtpy");
-            }
             fragmentSize = fragmentSize < 0 ? FragmentSize : fragmentSize;
             var client = _webSocketClientsPool.Get(endPoint);
             if (client != null)
@@ -179,10 +175,6 @@ namespace nanoframework.System.Net.Websockets.Server
         //     The send message is not awaited. 
         public void SendData(string endPoint, byte[] buffer, int fragmentSize = -1)
         {
-            if (string.IsNullOrEmpty(endPoint))
-            {
-                Debug.WriteLine("how?");
-            }
             fragmentSize = fragmentSize < 0 ? FragmentSize : fragmentSize;
             var client = _webSocketClientsPool.Get(endPoint);
             if (client != null)
@@ -234,11 +226,7 @@ namespace nanoframework.System.Net.Websockets.Server
             var list = _webSocketClientsPool.List;
             foreach (string endPoint in list)
             {
-                if(!string.IsNullOrEmpty(endPoint)) SendText(endPoint, message, fragmentSize);
-                else
-                {
-                    Debug.WriteLine("an empty endpoint? How come?");
-                }
+                SendText(endPoint, message, fragmentSize);
             }
         }
 
@@ -262,10 +250,7 @@ namespace nanoframework.System.Net.Websockets.Server
         //     WebSocketCloseStatus.EndpointUnavailable will close the WebSocket synchronous without awaiting response.
         public void DisconnectClient(string endPoint, WebSocketCloseStatus closeStatus, bool abort = false)
         {
-            if (string.IsNullOrEmpty(endPoint))
-            {
-                Debug.WriteLine("how?");
-            }
+
             var client = _webSocketClientsPool.Get(endPoint);
             if (client != null)
                 if (abort)
