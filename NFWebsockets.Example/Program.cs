@@ -26,17 +26,17 @@ namespace NFWebsockets.Example
             {
 
                 //Lets create a new default webserver.
-                WebSocketServer webSocketServer = new WebSocketServer();
-                webSocketServer.Start();
+                //WebSocketServer webSocketServer = new WebSocketServer();
+                //webSocketServer.Start();
                 //Let's echo all incomming messages from clients to all connected clients including the sender. 
-                webSocketServer.MessageReceived += WebSocketServer_MesageReceived;
-                Debug.WriteLine($"Websocket server is up and running, connect on: ws://{ip}:{webSocketServer.Port}{webSocketServer.Prefix}");
+                //webSocketServer.MessageReceived += WebSocketServer_MesageReceived;
+                //Debug.WriteLine($"Websocket server is up and running, connect on: ws://{ip}:{webSocketServer.Port}{webSocketServer.Prefix}");
 
                 //Now let's also attach a local websocket client. Just because we can :-)
                 WebSocketClient client = new WebSocketClient();
 
                 //connect to the local client and write the messages to the debug output
-                client.Connect("ws://127.0.0.1", Client_MessageReceived);
+                client.Connect("wss://echo.websocket.org", Client_MessageReceived);
 
                 //While the client is connected will send a friendly hello every second.
                 while (client.State == nanoframework.System.Net.Websockets.WebSocketFrame.WebSocketState.Open)

@@ -1,6 +1,8 @@
-﻿using System;
+﻿using nanoframework.System.Net.Websockets.WebSocketFrame;
+using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Sockets;
 using static nanoframework.System.Net.Websockets.WebSocketReceiver;
 
 namespace nanoframework.System.Net.Websockets
@@ -9,12 +11,12 @@ namespace nanoframework.System.Net.Websockets
     {
         private ReceiveMessageFrame _messageFrame;
         private int _length;
-        private Stream _messageInputStream;
+        private WebSocketStream _messageInputStream;
         private WebSocket _webSocket;
         private EventHandler _messageReadCallback;
         private WebSocketReadErrorHandler _websocketReadErrorCallBack;
 
-        internal ReceiveMessageStream(ReceiveMessageFrame messageFrame, Stream receiveStream, int length, WebSocket webSocket, EventHandler messageReadCallback, WebSocketReadErrorHandler websocketReadErrorCallBack)
+        internal ReceiveMessageStream(ReceiveMessageFrame messageFrame, WebSocketStream receiveStream, int length, WebSocket webSocket, EventHandler messageReadCallback, WebSocketReadErrorHandler websocketReadErrorCallBack)
         {
             _messageFrame = messageFrame;
             _messageInputStream = receiveStream;
@@ -76,10 +78,10 @@ namespace nanoframework.System.Net.Websockets
 
                 try
                 {
-                    int bytesAvailable = (int)_messageInputStream.Length;
+
                     int bytesRead = 0;
-                    if (bytesAvailable > 0) {
-                        bytesRead = _messageInputStream.Read(buffer, totalBytesRead, (count - totalBytesRead > bytesAvailable ? bytesAvailable : count - totalBytesRead) );  //only get available bytes so we don't timeout. 
+                    if (_messageInputStream.DataAvailable) {
+                        bytesRead = _messageInputStream.Read(buffer, totalBytesRead, (count - totalBytesRead) );   
                     
                     }
 

@@ -1,4 +1,5 @@
 ﻿using nanoframework.System.Net.Websockets;
+using nanoframework.System.Net.Websockets.WebSocketFrame;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -121,7 +122,7 @@ namespace nanoframework.System.Net.Websockets.Client
             byte[] buffer = new byte[1024];
             _tcpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-            Stream stream = null;
+            WebSocketStream stream = null;
             try
             {
 
@@ -143,13 +144,13 @@ namespace nanoframework.System.Net.Websockets.Client
                     }
                     Debug.WriteLine($"{sslStream.Length}  bytes to read");
 
-
-                    stream = sslStream;
+                    WebSocketClientConnect(sslStream, ep, messageReceivedHandler, prefix, Host);
+                    //stream = new WebSocketStream(sslStream);
 
                 }
                 else
                 {
-                    stream = new NetworkStream(_tcpSocket);
+                    stream = new WebSocketStream(new NetworkStream(_tcpSocket));
                 }
             }
             catch (SocketException ex)
@@ -159,7 +160,7 @@ namespace nanoframework.System.Net.Websockets.Client
                 Debug.WriteLine($"** Socket exception occurred: {ex.Message} error code {ex.ErrorCode}!**");
             }
 
-            WebSocketClientConnect(stream, ep, messageReceivedHandler,prefix, Host);
+            //WebSocketClientConnect(stream, ep, messageReceivedHandler,prefix, Host);
             ConnectionClosed += WebSocket_ConnectionClosed;
         }
 
@@ -168,7 +169,7 @@ namespace nanoframework.System.Net.Websockets.Client
             _tcpSocket.Close();
         }
 
-        private void WebSocketClientConnect(Stream stream, IPEndPoint remoteEndPoint, MessageReceivedEventHandler messageReceivedHandler, string prefix = "/", string host = null )
+        private void WebSocketClientConnect(SslStream stream, IPEndPoint remoteEndPoint, MessageReceivedEventHandler messageReceivedHandler, string prefix = "/", string host = null )
         {
              if (prefix[0] != '/') throw new Exception("websocket prefix has to start with '/'");
 
@@ -203,7 +204,17 @@ namespace nanoframework.System.Net.Websockets.Client
                         {
                             Debug.WriteLine("Websocket Client connected");
                             correctHandshake = true;
-                            
+                            byte[] tempbuffer = new byte[] { 0x81, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58 };
+                            stream.Write(tempbuffer, 0, tempbuffer.Length);
+                            Thread.Sleep(300);
+                            if (stream.DataAvailable)
+                            {
+                                Debug.WriteLine($"data available - number of bytes = {stream.Read(tempbuffer, 0, tempbuffer.Length)}");
+                            }
+                            else
+                            {
+                                Debug.WriteLine($"failed - number of bytes = { stream.Read(tempbuffer, 0, tempbuffer.Length)}");
+                            }
                         }
 
 
@@ -217,7 +228,7 @@ namespace nanoframework.System.Net.Websockets.Client
                 throw new Exception("Websocket did not receive right handshake");
             }
 
-            ConnectToStream(stream, false, remoteEndPoint, messageReceivedHandler);
+            ConnectToStream(new WebSocketStream(stream), false, remoteEndPoint, messageReceivedHandler);
             
         }
 

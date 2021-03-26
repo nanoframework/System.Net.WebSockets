@@ -319,8 +319,8 @@ namespace nanoframework.System.Net.Websockets.Server
 
         private bool HandleTcpWebSocketRequest(Socket networkSocket, string prefix = "/", string serverName = "NFWebsocketServer") 
         {
-            
-            NetworkStream networkStream = new NetworkStream(networkSocket);
+
+            WebSocketStream networkStream = new WebSocketStream(new NetworkStream(networkSocket));
             
 
             string beginHeader = ($"GET {prefix} HTTP/1.1".ToLower());

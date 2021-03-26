@@ -30,6 +30,7 @@
     <Compile Include="WebSocketFrame\WebSocketMessageType.cs" />
     <Compile Include="WebSocketFrame\WebSocketOptions.cs" />
     <Compile Include="WebSocketFrame\WebSocketState.cs" />
+    <Compile Include="WebSocketFrame\WebSocketStream.cs" />
     <Compile Include="WebSocketHelpers.cs" />
     <Compile Include="WebSocketReceiver.cs" />
     <Compile Include="WebSocketReceiveThread.cs" />
