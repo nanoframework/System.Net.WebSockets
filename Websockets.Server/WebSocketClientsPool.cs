@@ -29,15 +29,7 @@ namespace nanoframework.System.Net.Websockets.Server
             {
                 lock (_poolLock)
                 {
-                    if(!string.IsNullOrEmpty(webSocket.RemoteEndPoint.ToString()))
-                    {
-                        _webSocketClients.Add(webSocket.RemoteEndPoint.ToString(), webSocket);
-                    }
-                    else
-                    {
-                        Debug.WriteLine("try to enter a empty endpoint");
-                    }
-                    
+                    _webSocketClients.Add(webSocket.RemoteEndPoint.ToString(), webSocket);
                 }
                 return true;
             }
