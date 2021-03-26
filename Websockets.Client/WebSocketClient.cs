@@ -17,20 +17,25 @@ namespace nanoframework.System.Net.Websockets.Client
     //     The WebSocketClient can connect to a WebSocket Server.
     public class WebSocketClient : WebSocket, IDisposable
     {
-        //
-        // Summary:
-        //     If a secure connection is used.
+        private NetworkStream _networkStream;
+
+        /// <summary>
+        /// If a secure connection is used.
+        /// </summary>
         public bool IsSSL { get; private set; } = false;
-        //
-        // Summary:
-        //     The remote Port to connect to.
+
+        /// <summary>
+        /// The remote Port to connect to.
+        /// </summary>
         public int Port { get; private set; }
+
         public SslProtocols SslProtocol { get; private set; } = SslProtocols.Tls12;
 
         //
         // Summary:
         //     The remote Host name to connect to.
         public string Host { get; private set; }
+
         public bool UseCustomCertificate => _certificate != null;
 
         //
@@ -62,7 +67,6 @@ namespace nanoframework.System.Net.Websockets.Client
                 SslProtocol = options.SslProtocol;
                  SslVerification = options.SslVerification;
                 _certificate = options.Certificate;
-
             }
         }
 
@@ -79,6 +83,7 @@ namespace nanoframework.System.Net.Websockets.Client
         public void Connect(string uri, MessageReceivedEventHandler messageReceivedHandler)
         {
             State = WebSocketFrame.WebSocketState.Connecting;
+           
             var splitUrl = uri.ToLower().Split(new char[] { ':', '/', '/' }, 4);
             if (splitUrl.Length == 4 && splitUrl[0] == "ws") IsSSL = false;
             else if (splitUrl.Length == 4 && splitUrl[0] == "wss") IsSSL = true;
@@ -113,7 +118,6 @@ namespace nanoframework.System.Net.Websockets.Client
                         throw new Exception("Something is wrong with the port number of the websocket url");
                     }
                 }
-
             }
 
             IPHostEntry hostEntry = Dns.GetHostEntry(Host);
@@ -122,14 +126,15 @@ namespace nanoframework.System.Net.Websockets.Client
             byte[] buffer = new byte[1024];
             _tcpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-            WebSocketStream stream = null;
+            NetworkStream stream = null;
             try
             {
-
                 _tcpSocket.Connect(ep);
+
                 int datanum = _tcpSocket.Available;
                 if (datanum > 0)
                     _tcpSocket.Receive(buffer);
+
                 if (IsSSL)
                 {
                     SslStream sslStream = new SslStream(_tcpSocket);
@@ -144,14 +149,14 @@ namespace nanoframework.System.Net.Websockets.Client
                     }
                     Debug.WriteLine($"{sslStream.Length}  bytes to read");
 
-                    WebSocketClientConnect(sslStream, ep, messageReceivedHandler, prefix, Host);
-                    //stream = new WebSocketStream(sslStream);
-
+                    _networkStream = sslStream;
                 }
                 else
                 {
-                    stream = new WebSocketStream(new NetworkStream(_tcpSocket));
+                    _networkStream = new NetworkStream(_tcpSocket, true);
                 }
+
+                WebSocketClientConnect(ep, messageReceivedHandler, prefix, Host);
             }
             catch (SocketException ex)
             {
@@ -169,30 +174,29 @@ namespace nanoframework.System.Net.Websockets.Client
             _tcpSocket.Close();
         }
 
-        private void WebSocketClientConnect(SslStream stream, IPEndPoint remoteEndPoint, MessageReceivedEventHandler messageReceivedHandler, string prefix = "/", string host = null )
+        private void WebSocketClientConnect(IPEndPoint remoteEndPoint, MessageReceivedEventHandler messageReceivedHandler, string prefix = "/", string host = null )
         {
              if (prefix[0] != '/') throw new Exception("websocket prefix has to start with '/'");
-
 
             byte[] keyBuf = new byte[16];
             new Random().NextBytes(keyBuf);
             string swk = Convert.ToBase64String(keyBuf);
 
             byte[] sendBuffer = Encoding.UTF8.GetBytes($"GET {prefix} HTTP/1.1\r\nHost: {(host != null ? host : remoteEndPoint.Address.ToString())}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: {swk}\r\nSec-WebSocket-Version: 13\r\n\r\n");
-            stream.Write(sendBuffer, 0, sendBuffer.Length);
+            _networkStream.Write(sendBuffer, 0, sendBuffer.Length);
 
             string beginHeader = ($"HTTP/1.1 101".ToLower());
             byte[] bufferStart = new byte[beginHeader.Length];
             byte[] buffer = new byte[600];
 
-            int bytesRead = stream.Read(bufferStart, 0, bufferStart.Length);
+            int bytesRead = _networkStream.Read(bufferStart, 0, bufferStart.Length);
 
             bool correctHandshake = false;
             if (bytesRead == bufferStart.Length)
             {
                 if (Encoding.UTF8.GetString(bufferStart, 0, bufferStart.Length).ToLower() == beginHeader)
                 { //right http request
-                    bytesRead = stream.Read(buffer, 0, buffer.Length);
+                    bytesRead = _networkStream.Read(buffer, 0, buffer.Length);
                     if (bytesRead > 20)
                     {
                         var headers = WebSocketHelpers.ParseHeaders(Encoding.UTF8.GetString(buffer, 0, bytesRead));
@@ -203,21 +207,21 @@ namespace nanoframework.System.Net.Websockets.Client
                         if (((string)headers["connection"]).ToLower() == "upgrade" && ((string)headers["upgrade"]).ToLower() == "websocket" && (string)headers["sec-websocket-accept"] == swkaSha1Base64)
                         {
                             Debug.WriteLine("Websocket Client connected");
+
                             correctHandshake = true;
                             byte[] tempbuffer = new byte[] { 0x81, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58 };
-                            stream.Write(tempbuffer, 0, tempbuffer.Length);
+                            
+                            _networkStream.Write(tempbuffer, 0, tempbuffer.Length);
                             Thread.Sleep(300);
-                            if (stream.DataAvailable)
-                            {
-                                Debug.WriteLine($"data available - number of bytes = {stream.Read(tempbuffer, 0, tempbuffer.Length)}");
-                            }
-                            else
-                            {
-                                Debug.WriteLine($"failed - number of bytes = { stream.Read(tempbuffer, 0, tempbuffer.Length)}");
-                            }
+
+                            // read HELLO
+                            byte[] retBuffer = ReadFixedSizeBuffer(7);
+
+                            // check if we do have an HELLO
+                            var s = Encoding.UTF8.GetString(retBuffer, 2, retBuffer.Length - 2);
+
+                            Debug.WriteLine($"Read { retBuffer.Length} bytes");
                         }
-
-
                     }
                 }
             }
@@ -225,11 +229,25 @@ namespace nanoframework.System.Net.Websockets.Client
             {
                 State = WebSocketFrame.WebSocketState.Closed;
                 _tcpSocket.Close();
+
                 throw new Exception("Websocket did not receive right handshake");
             }
 
-            ConnectToStream(new WebSocketStream(stream), false, remoteEndPoint, messageReceivedHandler);
-            
+            ConnectToStream(_networkStream, false, remoteEndPoint, messageReceivedHandler);
+        }
+
+        private byte[] ReadFixedSizeBuffer(int size)
+        {
+            byte[] buffer = new byte[size];
+            int offset = 0;
+            while (size > 0)
+            {
+                int bytes = _networkStream.Read(buffer, offset, size);
+                offset += bytes;
+                size -= bytes;
+            }
+
+            return buffer;
         }
 
         //

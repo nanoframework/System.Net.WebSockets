@@ -11,12 +11,12 @@ namespace nanoframework.System.Net.Websockets
     {
         private ReceiveMessageFrame _messageFrame;
         private int _length;
-        private WebSocketStream _messageInputStream;
+        private NetworkStream _messageInputStream;
         private WebSocket _webSocket;
         private EventHandler _messageReadCallback;
         private WebSocketReadErrorHandler _websocketReadErrorCallBack;
 
-        internal ReceiveMessageStream(ReceiveMessageFrame messageFrame, WebSocketStream receiveStream, int length, WebSocket webSocket, EventHandler messageReadCallback, WebSocketReadErrorHandler websocketReadErrorCallBack)
+        internal ReceiveMessageStream(ReceiveMessageFrame messageFrame, NetworkStream receiveStream, int length, WebSocket webSocket, EventHandler messageReadCallback, WebSocketReadErrorHandler websocketReadErrorCallBack)
         {
             _messageFrame = messageFrame;
             _messageInputStream = receiveStream;

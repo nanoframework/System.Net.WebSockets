@@ -25,7 +25,6 @@ namespace nanoframework.System.Net.Websockets
         {
             while (!_stopped)
             {
-
                 var messageFrame = _webSocketReceiver.StartReceivingMessage();
 
                 if (messageFrame == null)

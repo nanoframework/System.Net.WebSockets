@@ -88,7 +88,7 @@ namespace nanoframework.System.Net.Websockets
         public IPEndPoint RemoteEndPoint { get; private set; }
         
 
-        private WebSocketStream _receiveStream;
+        private NetworkStream _receiveStream;
         private Thread _receiveThread;
         private bool _hasError = false;
 
@@ -134,7 +134,7 @@ namespace nanoframework.System.Net.Websockets
         //     A handler that is used when a message is received. Controller messages are handled internally. 
         //     
 
-        protected void ConnectToStream(WebSocketStream stream, bool isServer, IPEndPoint remoteEndPoint, MessageReceivedEventHandler messageReceivedHandler)
+        protected void ConnectToStream(NetworkStream stream, bool isServer, IPEndPoint remoteEndPoint, MessageReceivedEventHandler messageReceivedHandler)
         {
             _receiveStream = stream;
             IsServer = isServer;

@@ -12,7 +12,7 @@ namespace nanoframework.System.Net.Websockets
     internal class WebSocketReceiver
     {
 
-        private WebSocketStream _inputStream;
+        private NetworkStream _inputStream;
         private bool _isServer;
         private int _maxReceiveFrameSize;
         private WebSocket _webSocket;
@@ -27,7 +27,7 @@ namespace nanoframework.System.Net.Websockets
         private bool ReceivingFragmentedMessage = false;
 
 
-        internal WebSocketReceiver(WebSocketStream inputStream, IPEndPoint remoteEndpoint, WebSocket webSocket, bool isServer, int maxReceiveFrameSize, EventHandler messageReadCallBack, WebSocketReadErrorHandler websocketReadErrorCallBack)
+        internal WebSocketReceiver(NetworkStream inputStream, IPEndPoint remoteEndpoint, WebSocket webSocket, bool isServer, int maxReceiveFrameSize, EventHandler messageReadCallBack, WebSocketReadErrorHandler websocketReadErrorCallBack)
         {
             _inputStream = inputStream;
             _remoteEndPoint = remoteEndpoint;
@@ -49,7 +49,8 @@ namespace nanoframework.System.Net.Websockets
             try
             {
                 
-                if (_inputStream.DataAvailable) { 
+                //if (_inputStream.DataAvailable)
+                { 
                     numBytesReceived = _inputStream.Read(messageHeader, 0, 2);
                 }
 
@@ -63,7 +64,7 @@ namespace nanoframework.System.Net.Websockets
                     if (numBytesReceived == 1) //still wating on second header byte
                     {
                         numBytesReceived = 0;
-                        if (_inputStream.DataAvailable)
+                        //if (_inputStream.DataAvailable)
                         {
                             numBytesReceived = _inputStream.Read(messageHeader, 1, 1);
                         }

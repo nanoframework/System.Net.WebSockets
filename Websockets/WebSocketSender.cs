@@ -17,7 +17,7 @@ namespace nanoframework.System.Net.Websockets
         private object _controllerMessageLock = new object();
         private object _messageFrameLock = new object();
         private bool _isServer;
-        private WebSocketStream _outputStream;
+        private NetworkStream _outputStream;
         private Thread _sendThread;
         private Random randomizer = new Random();
         private AutoResetEvent are = new AutoResetEvent(false);
@@ -25,7 +25,7 @@ namespace nanoframework.System.Net.Websockets
         internal delegate void WebSocketWriteErrorHandler(object sender, WebSocketWriteErrorArgs e);
         internal bool CloseMessageSend { get; private set; } = false;
 
-        internal WebSocketSender(WebSocketStream outputStream, bool isServer, WebSocketWriteErrorHandler webSocketWriteErrorCallback)
+        internal WebSocketSender(NetworkStream outputStream, bool isServer, WebSocketWriteErrorHandler webSocketWriteErrorCallback)
         {
             _outputStream = outputStream;
             _isServer = isServer;
