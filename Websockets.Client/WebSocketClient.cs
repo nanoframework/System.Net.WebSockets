@@ -1,8 +1,5 @@
-﻿using nanoframework.System.Net.Websockets;
-using nanoframework.System.Net.Websockets.WebSocketFrame;
-using System;
+﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
@@ -12,9 +9,9 @@ using System.Threading;
 
 namespace nanoframework.System.Net.Websockets.Client
 {
-    //
-    // Summary:
-    //     The WebSocketClient can connect to a WebSocket Server.
+    /// <summary>
+    /// The WebSocketClient can connect to a WebSocket Server.
+    /// </summary>
     public class WebSocketClient : WebSocket, IDisposable
     {
         private NetworkStream _networkStream;
@@ -31,35 +28,30 @@ namespace nanoframework.System.Net.Websockets.Client
 
         public SslProtocols SslProtocol { get; private set; } = SslProtocols.Tls12;
 
-        //
-        // Summary:
-        //     The remote Host name to connect to.
+        /// <summary>
+        /// The remote Host name to connect to.
+        /// </summary>
         public string Host { get; private set; }
 
         public bool UseCustomCertificate => _certificate != null;
 
-        //
-        // Summary:
-        //     The remote Prefix to connect to.
+        /// <summary>
+        /// The remote Prefix to connect to.
+        /// </summary>
         public string Prefix { get; private set; }
 
-        //
-        // Summary:
-        //     The type of SslVerification to use.
+        /// <summary>
+        /// The type of SslVerification to use.
+        /// </summary>
         public SslVerification SslVerification { get; private set; } = SslVerification.NoVerification;
         
         private Socket _tcpSocket;
         private X509Certificate _certificate = null;
 
-
-
-        //
-        // Summary:
-        //     Creates an instance of the System.Net.WebSockets.ClientWebSocket class.
-        //
-        // Parameters:
-        //     options:
-        //          Optional ClientWebSocketOptions where extra options can be defined.
+        /// <summary>
+        /// Creates an instance of the System.Net.WebSockets.ClientWebSocket class.
+        /// </summary>
+        /// <param name="options">Optional ClientWebSocketOptions where extra options can be defined.</param>
         public WebSocketClient(ClientWebSocketOptions options = null) : base(options)
         {
             if(options != null)
@@ -70,16 +62,11 @@ namespace nanoframework.System.Net.Websockets.Client
             }
         }
 
-        //
-        // Summary:
-        //     Connect to a WebSocket server.
-        //
-        // Parameters:
-        //   uri:
-        //     The URI of the WebSocket server to connect to.
-        //
-        //   messageReceivedHandler:
-        //      A handler that is called when the WebSocket server receives a message
+        /// <summary>
+        /// Connect to a WebSocket server.
+        /// </summary>
+        /// <param name="uri">The URI of the WebSocket server to connect to.</param>
+        /// <param name="messageReceivedHandler">A handler that is called when the WebSocket server receives a message</param>
         public void Connect(string uri, MessageReceivedEventHandler messageReceivedHandler)
         {
             State = WebSocketFrame.WebSocketState.Connecting;
@@ -247,10 +234,7 @@ namespace nanoframework.System.Net.Websockets.Client
             ConnectToStream(_networkStream, false, remoteEndPoint, messageReceivedHandler);
         }
 
-        //
-        // Summary:
-        //     Releases the unmanaged resources used by the System.Net.WebSockets.ClientWebSocket
-        //     instance.
+        /// <inheritdoc/>
         public new void Dispose()
         {
             base.Dispose();
