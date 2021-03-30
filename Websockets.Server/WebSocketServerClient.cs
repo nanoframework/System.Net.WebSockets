@@ -9,6 +9,8 @@ namespace nanoframework.System.Net.Websockets.Server
 {
     internal class WebSocketServerClient : WebSocket
     {
+        public override WebSocketState State { get; set; } = WebSocketState.Closed;
+
         internal WebSocketServerClient(WebSocketServerOptions options) : base(options)
         {
             
@@ -17,7 +19,7 @@ namespace nanoframework.System.Net.Websockets.Server
 
         internal void ConnectToStream(NetworkStream stream, IPEndPoint remoteEndPoint, MessageReceivedEventHandler messageReceivedHandler)
         {
-            base.ConnectToStream(stream, true, remoteEndPoint, messageReceivedHandler);
+            //ConnectToStream(stream, true, remoteEndPoint, messageReceivedHandler);
         }
 
     }

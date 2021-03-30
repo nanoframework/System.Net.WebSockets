@@ -15,7 +15,6 @@ namespace nanoframework.System.Net.Websockets.Server
     //     The WebSocketServer class is a WebSocket Server to which WebSocket Clients can connect.
     public class WebSocketServer : IDisposable
     {
-
         public delegate void MessageReceivedEventhandler(object sender, MessageReceivedEventArgs e);
         public delegate void WebSocketOpenedEventhandler(object sender, WebSocketOpenedEventArgs e);
         public delegate void WebSocketClosedEventhandler(object sender, WebSocketClosedEventArgs e);
@@ -92,10 +91,10 @@ namespace nanoframework.System.Net.Websockets.Server
         //     Gets an array of all connected client IPEndPoints.
         public string[] ListClients { get => _webSocketClientsPool.List; }
 
-        private WebSocketClientsPool _webSocketClientsPool;
+        private readonly WebSocketClientsPool _webSocketClientsPool;
         private Thread _listnerThread;
 
-        private WebSocketServerOptions _options = new WebSocketServerOptions();
+        private readonly WebSocketServerOptions _options = new WebSocketServerOptions();
 
         //
         // Summary:

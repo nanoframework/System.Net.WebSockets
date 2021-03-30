@@ -1,19 +1,26 @@
-﻿using System;
+﻿using nanoframework.System.Net.Websockets.WebSocketFrame;
+using System;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading;
 
-namespace nanoframework.System.Net.Websockets.Client
+namespace nanoframework.System.Net.Websockets
 {
+    public delegate void MessageReceivedEventHandler(object sender, MessageReceivedEventArgs e);
+
     /// <summary>
     /// The WebSocketClient can connect to a WebSocket Server.
     /// </summary>
     public class WebSocketClient : WebSocket, IDisposable
     {
+        internal MessageReceivedEventHandler CallbacksMessageReceivedEventHandler;
+
         private NetworkStream _networkStream;
+        private readonly object _syncLock = new object();
 
         /// <summary>
         /// If a secure connection is used.
@@ -43,9 +50,54 @@ namespace nanoframework.System.Net.Websockets.Client
         /// The type of SslVerification to use.
         /// </summary>
         public SslVerification SslVerification { get; private set; } = SslVerification.CertificateRequired;
-        
+
+        public override WebSocketState State { get; set; } = WebSocketState.Closed;
+
         private Socket _tcpSocket;
-        private X509Certificate _certificate = null;
+        private readonly X509Certificate _certificate = null;
+
+        public event MessageReceivedEventHandler MessageReceived
+        {
+            add
+            {
+                lock (_syncLock)
+                {
+                    MessageReceivedEventHandler callbacksOld = CallbacksMessageReceivedEventHandler;
+                    MessageReceivedEventHandler callbacksNew = (MessageReceivedEventHandler)Delegate.Combine(callbacksOld, value);
+
+                    try
+                    {
+                        CallbacksMessageReceivedEventHandler = callbacksNew;
+                    }
+                    catch
+                    {
+                        CallbacksMessageReceivedEventHandler = callbacksOld;
+
+                        throw;
+                    }
+                }
+            }
+
+            remove
+            {
+                lock (_syncLock)
+                {
+                    MessageReceivedEventHandler callbacksOld = CallbacksMessageReceivedEventHandler;
+                    MessageReceivedEventHandler callbacksNew = (MessageReceivedEventHandler)Delegate.Remove(callbacksOld, value);
+
+                    try
+                    {
+                        CallbacksMessageReceivedEventHandler = callbacksNew;
+                    }
+                    catch
+                    {
+                        CallbacksMessageReceivedEventHandler = callbacksOld;
+
+                        throw;
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// Creates an instance of the System.Net.WebSockets.ClientWebSocket class.
@@ -66,7 +118,7 @@ namespace nanoframework.System.Net.Websockets.Client
         /// </summary>
         /// <param name="uri">The URI of the WebSocket server to connect to.</param>
         /// <param name="messageReceivedHandler">A handler that is called when the WebSocket server receives a message</param>
-        public void Connect(string uri, MessageReceivedEventHandler messageReceivedHandler)
+        public void Connect(string uri)
         {
             State = WebSocketFrame.WebSocketState.Connecting;
            
@@ -147,7 +199,7 @@ namespace nanoframework.System.Net.Websockets.Client
                     _networkStream = new NetworkStream(_tcpSocket, true);
                 }
 
-                WebSocketClientConnect(ep, messageReceivedHandler, prefix, Host);
+                WebSocketClientConnect(ep, prefix, Host);
             }
             catch (SocketException ex)
             {
@@ -164,7 +216,7 @@ namespace nanoframework.System.Net.Websockets.Client
             _tcpSocket.Close();
         }
 
-        private void WebSocketClientConnect(IPEndPoint remoteEndPoint, MessageReceivedEventHandler messageReceivedHandler, string prefix = "/", string host = null )
+        private void WebSocketClientConnect(IPEndPoint remoteEndPoint, string prefix = "/", string host = null )
         {
              if (prefix[0] != '/') throw new Exception("websocket prefix has to start with '/'");
 
@@ -214,7 +266,13 @@ namespace nanoframework.System.Net.Websockets.Client
                 throw new Exception("Websocket did not receive right handshake");
             }
 
-            ConnectToStream(_networkStream, false, remoteEndPoint, messageReceivedHandler);
+            ConnectToStream(_networkStream, false, remoteEndPoint);
+
+            ReceiveAndControllThread receiveThread = new ReceiveAndControllThread(this);
+            new Thread(receiveThread.WorkerThread).Start();
+
+            State = WebSocketState.Open;
+
         }
 
         /// <inheritdoc/>

@@ -17,7 +17,7 @@ namespace nanoframework.System.Net.Websockets
         private readonly WebSocket _webSocket;
         private readonly WebSocketReadErrorHandler _websocketReadErrorCallBack;
 
-        internal delegate void WebSocketReadErrorHandler(object sender, WebSocketReadErrorArgs e);
+        internal delegate void WebSocketReadErrorHandler(object sender, WebSocketReadEEventArgs e);
 
         internal WebSocketReceiver(NetworkStream inputStream, IPEndPoint remoteEndpoint, WebSocket webSocket, bool isServer, int maxReceiveFrameSize, WebSocketReadErrorHandler websocketReadErrorCallBack)
         {
@@ -185,7 +185,7 @@ namespace nanoframework.System.Net.Websockets
         private void ReadError(Exception ex, ReceiveMessageFrame frame)
         {
             frame.ErrorMessage = ex.Message;
-            _websocketReadErrorCallBack?.Invoke(this, new WebSocketReadErrorArgs() { Frame = frame });
+            _websocketReadErrorCallBack?.Invoke(this, new WebSocketReadEEventArgs() { Frame = frame });
         }
 
         byte[] ReadFixedSizeBuffer(int size)
@@ -204,7 +204,7 @@ namespace nanoframework.System.Net.Websockets
         }
     }
 
-    internal class WebSocketReadErrorArgs : EventArgs
+    internal class WebSocketReadEEventArgs : EventArgs
     {
         public ReceiveMessageFrame Frame { get; set; }
 

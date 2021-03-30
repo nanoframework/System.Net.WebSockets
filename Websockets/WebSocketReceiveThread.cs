@@ -6,24 +6,20 @@ using System.Threading;
 
 namespace nanoframework.System.Net.Websockets
 {
-    partial class WebSocket
+    internal class ReceiveAndControllThread
     {
-        internal DateTime _closingTime = DateTime.UtcNow;
-        private MessageReceivedEventHandler _messageReceivedEventHandler;       
-        private WebSocketReceiver _webSocketReceiver;
-        private WebSocketSender _webSocketSender;
-        private bool _pinging = false;
-        private DateTime _pingTime = DateTime.UtcNow;
+        private readonly WebSocketClient _webSocketClient;
 
-        private bool _stopped = false;
-        private byte[] messageHeader = new byte[2];
-        private WebSocketCloseStatus _closeStatus = WebSocketCloseStatus.Empty;
-
-        private void ReceiveAndControllThread() //this thread is always running and thus the best place for controlling ping and other messages
+        public ReceiveAndControllThread(WebSocketClient webSocketClient)
         {
-            while (!_stopped)
+            _webSocketClient = webSocketClient;
+        }
+
+        public void WorkerThread() //this thread is always running and thus the best place for controlling ping and other messages
+        {
+            while (!_webSocketClient.Stopped)
             {
-                var messageFrame = _webSocketReceiver.StartReceivingMessage();
+                var messageFrame = _webSocketClient.WebSocketReceiver.StartReceivingMessage();
 
                 if (messageFrame == null)
                 {
@@ -34,54 +30,58 @@ namespace nanoframework.System.Net.Websockets
                     //handle error
                     if (messageFrame.Error)
                     {
-                        _hasError = true;
+                        _webSocketClient.HasError = true;
 
-                        Debug.WriteLine($"{RemoteEndPoint} closed with error: {messageFrame.ErrorMessage}");
+                        Debug.WriteLine($"{_webSocketClient.RemoteEndPoint} closed with error: {messageFrame.ErrorMessage}");
 
-                        RawClose(messageFrame.CloseStatus, Encoding.UTF8.GetBytes(messageFrame.ErrorMessage), true);
+                        _webSocketClient.RawClose(messageFrame.CloseStatus, Encoding.UTF8.GetBytes(messageFrame.ErrorMessage), true);
                     }
                     else if (messageFrame.IsControllFrame)
                     {
-                        byte[] buffer = _webSocketReceiver.ReadBuffer(messageFrame.MessageLength);
+                        byte[] buffer = _webSocketClient.WebSocketReceiver.ReadBuffer(messageFrame.MessageLength);
 
-                        LastContact = DateTime.UtcNow;
+                        _webSocketClient.LastContactTimeStamp = DateTime.UtcNow;
 
                         switch (messageFrame.OpCode)
                         {
-                            case OpCode.PingFrame: //send Pong
+                            case OpCode.PingFrame:
+                                // need to send a Pong
                                 var pong = new SendMessageFrame() { Buffer = buffer, OpCode = OpCode.PongFrame};
                                 messageFrame.OpCode = OpCode.PongFrame;
                                 messageFrame.IsMasked = false;
-                                QueueMessageToSend(pong);
+                                _webSocketClient.QueueMessageToSend(pong);
                                 break;
 
-                            case OpCode.PongFrame: //pongframe
-                                _pinging = false; //checking if content pong matches ping is not implemented due to threadsafety and memoryconsumption considerations
+                            case OpCode.PongFrame: 
+                                // received a Pong
+                                // checking if content Pong matches Ping is not implemented due to thread safety and memory consumption considerations
+                                _webSocketClient.Pinging = false; 
                                 break;
 
                             case OpCode.ConnectionCloseFrame:
-                                _closeStatus = WebSocketCloseStatus.Empty;
+                                _webSocketClient.CloseStatus = WebSocketCloseStatus.Empty;
+
                                 if (buffer.Length > 1)
                                 {
                                     byte[] closeByteCode = new byte[] { buffer[1], buffer[0] };
                                     UInt16 statusCode = BitConverter.ToUInt16(closeByteCode, 0);
                                     if (statusCode > 999 && statusCode < 1012) 
                                     {
-                                        _closeStatus = (WebSocketCloseStatus)statusCode;
+                                        _webSocketClient.CloseStatus = (WebSocketCloseStatus)statusCode;
                                     }
                                 }
 
-                                //conection asked to be closed return awnser
-                                if (State != WebSocketFrame.WebSocketState.CloseSent)
-                                { 
-                                    State = WebSocketFrame.WebSocketState.CloseReceived;
+                                //connection asked to be closed return answer
+                                if (_webSocketClient.State != WebSocketFrame.WebSocketState.CloseSent)
+                                {
+                                    _webSocketClient.State = WebSocketFrame.WebSocketState.CloseReceived;
 
-                                    RawClose(WebSocketCloseStatus.NormalClosure, buffer = null, true);
+                                    _webSocketClient.RawClose(WebSocketCloseStatus.NormalClosure, buffer, true);
                                 }
-                                //response to conenction close we can shut down the socket.
+                                //response to connection close we can shut down the socket.
                                 else
                                 {
-                                    HardClose();   
+                                    _webSocketClient.HardClose();   
                                 }
                                 break;
                         }
@@ -90,17 +90,15 @@ namespace nanoframework.System.Net.Websockets
                     {
                         if (messageFrame.Error)
                         {
-                            Debug.WriteLine($"{RemoteEndPoint.ToString()} error - {messageFrame.ErrorMessage}");
+                            Debug.WriteLine($"Error message from '{_webSocketClient.RemoteEndPoint}' error - {messageFrame.ErrorMessage}");
 
-                            RawClose(messageFrame.CloseStatus, Encoding.UTF8.GetBytes(messageFrame.ErrorMessage), true);
+                            _webSocketClient.RawClose(messageFrame.CloseStatus, Encoding.UTF8.GetBytes(messageFrame.ErrorMessage), true);
                         }
                         else
                         {
-                            messageFrame.Buffer = _webSocketReceiver.ReadBuffer(messageFrame.MessageLength);
+                            messageFrame.Buffer = _webSocketClient.WebSocketReceiver.ReadBuffer(messageFrame.MessageLength);
 
-                            Debug.WriteLine($"received message: {messageFrame.MessageType.ToString()}");
-
-                            LastContact = DateTime.UtcNow;
+                            _webSocketClient.LastContactTimeStamp = DateTime.UtcNow;
 
                             OnNewMessage(messageFrame);
                         }
@@ -108,63 +106,30 @@ namespace nanoframework.System.Net.Websockets
                 }
 
                 //Controlling ping and ControllerMessagesTimeout
-                if (_pinging && _pingTime.Add(ServerTimeout ) < DateTime.UtcNow)
+                if (_webSocketClient.Pinging && _webSocketClient.PingTime.Add(_webSocketClient.ServerTimeout ) < DateTime.UtcNow)
                 {
-                    RawClose(WebSocketCloseStatus.PolicyViolation, Encoding.UTF8.GetBytes("Ping timeout"), true);
+                    _webSocketClient.RawClose(WebSocketCloseStatus.PolicyViolation, Encoding.UTF8.GetBytes("Ping timeout"), true);
 
-                    Debug.WriteLine($"{RemoteEndPoint} ping timed out");
+                    Debug.WriteLine($"{_webSocketClient.RemoteEndPoint} ping timed out");
                 }
 
-                if (State == WebSocketFrame.WebSocketState.CloseSent && _closingTime.Add(ServerTimeout ) < DateTime.UtcNow)
+                if (_webSocketClient.State == WebSocketFrame.WebSocketState.CloseSent && _webSocketClient.ClosingTime.Add(_webSocketClient.ServerTimeout ) < DateTime.UtcNow)
                 {
-                    HardClose();
+                    _webSocketClient.HardClose();
                 }
 
-                if (KeepAliveInterval != Timeout.InfiniteTimeSpan && State != WebSocketFrame.WebSocketState.CloseSent && !_pinging && LastContact.Add(KeepAliveInterval) < DateTime.UtcNow)
+                if (_webSocketClient.KeepAliveInterval != Timeout.InfiniteTimeSpan && _webSocketClient.State != WebSocketFrame.WebSocketState.CloseSent && !_webSocketClient.Pinging && _webSocketClient.LastContactTimeStamp.Add(_webSocketClient.KeepAliveInterval) < DateTime.UtcNow)
                 {
-                    SendPing();
+                    _webSocketClient.SendPing();
                 }
             }
 
-            _receiveStream.Close();
-        }
-
-        private void RelayMessage(ReceiveMessageFrame messageFrame)
-        {
-            if (messageFrame.Error)
-            {
-                Debug.WriteLine($"{RemoteEndPoint.ToString()} error - {messageFrame.ErrorMessage}");
-                RawClose(messageFrame.CloseStatus, Encoding.UTF8.GetBytes(messageFrame.ErrorMessage), true);
-            }
-            else
-            {
-                LastContact = DateTime.UtcNow;
-                OnNewMessage(messageFrame);
-            }
-        }
-
-        //Ping will only commence from this thread because of threading safety. 
-        private void SendPing(string pingContent = "hello")
-        {
-            _pinging = true;
-            _pingTime = DateTime.UtcNow;
-
-            QueueMessageToSend(new SendMessageFrame()
-            {
-                Buffer = Encoding.UTF8.GetBytes(pingContent),
-                OpCode = OpCode.PingFrame
-
-            });
-        }
-
-        private void StopReceiving()
-        {
-            _stopped = true;
+            _webSocketClient.ReceiveStream.Close();
         }
 
         private void OnNewMessage(ReceiveMessageFrame message)
         {
-            _messageReceivedEventHandler?.Invoke(this, new MessageReceivedEventArgs() { Frame = message });
+            _webSocketClient.CallbacksMessageReceivedEventHandler?.Invoke(this, new MessageReceivedEventArgs() { Frame = message });
         }
     }
 }

@@ -1,5 +1,4 @@
 using nanoframework.System.Net.Websockets;
-using nanoframework.System.Net.Websockets.Client;
 using nanoframework.System.Net.Websockets.Server;
 using nanoFramework.Networking;
 using System;
@@ -41,18 +40,17 @@ namespace NFWebsockets.Example
             WebSocketClient client = new WebSocketClient();
 
             //connect to the local client and write the messages to the debug output
-            client.Connect("wss://echo.websocket.org", Client_MessageReceived);
+            client.Connect("wss://echo.websocket.org");
+            client.MessageReceived += Client_MessageReceived;
 
             int helloCounter = 0;
 
             //While the client is connected will send a friendly hello every second.
             while (client.State == nanoframework.System.Net.Websockets.WebSocketFrame.WebSocketState.Open)
             {
-                Debug.WriteLine($"About to send: {helloCounter}");
-
                 client.SendString($"hello {helloCounter++}");
 
-                Thread.Sleep(500);
+                Thread.Sleep(100);
             }
 
             Thread.Sleep(Timeout.Infinite);

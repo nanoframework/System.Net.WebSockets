@@ -4,7 +4,7 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
-namespace nanoframework.System.Net.Websockets.Client
+namespace nanoframework.System.Net.Websockets
 {
     public class ClientWebSocketOptions : WebSocketOptions
     {
