@@ -118,10 +118,6 @@ namespace nanoframework.System.Net.Websockets.Client
             {
                 _tcpSocket.Connect(ep);
 
-                int datanum = _tcpSocket.Available;
-                if (datanum > 0)
-                    _tcpSocket.Receive(buffer);
-
                 if (IsSSL)
                 {
                     SslStream sslStream = new SslStream(_tcpSocket);
@@ -134,7 +130,7 @@ namespace nanoframework.System.Net.Websockets.Client
                     {
                         sslStream.AuthenticateAsClient(Host, SslProtocol);
                     }
-                    Debug.WriteLine($"{sslStream.Length}  bytes to read");
+                    //Debug.WriteLine($"{sslStream.Length}  bytes to read");
 
                     _networkStream = sslStream;
                 }
@@ -194,30 +190,30 @@ namespace nanoframework.System.Net.Websockets.Client
                         if (((string)headers["connection"]).ToLower() == "upgrade" && ((string)headers["upgrade"]).ToLower() == "websocket" && (string)headers["sec-websocket-accept"] == swkaSha1Base64)
                         {
                             Debug.WriteLine("Websocket Client connected");
-
-                            byte[] tempbuffer = new byte[] { 0x81, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58 };
+                            correctHandshake = true;
+                            //byte[] tempbuffer = new byte[] { 0x81, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58 };
                             
-                            _networkStream.Write(tempbuffer, 0, tempbuffer.Length);
-                            Thread.Sleep(300);
+                            //_networkStream.Write(tempbuffer, 0, tempbuffer.Length);
+                            //Thread.Sleep(300);
 
-                            // read HELLO
-                            byte[] retBuffer = new byte[7];
-                            bytesRead = _networkStream.Read(retBuffer, 0, 7);
+                            //// read HELLO
+                            //byte[] retBuffer = new byte[7];
+                            //bytesRead = _networkStream.Read(retBuffer, 0, 7);
 
-                            if (bytesRead == 7)
-                            {
-                                // check if we do have an HELLO
-                                var s = Encoding.UTF8.GetString(retBuffer, 2, retBuffer.Length - 2);
+                            //if (bytesRead == 7)
+                            //{
+                            //    // check if we do have an HELLO
+                            //    var s = Encoding.UTF8.GetString(retBuffer, 2, retBuffer.Length - 2);
 
-                                if (s == "Hello")
-                                {
-                                    correctHandshake = true;
-                                }
-                                else
-                                {
-                                    // unexpected reply from server
-                                }
-                            }
+                            //    if (s == "Hello")
+                            //    {
+
+                            //    }
+                            //    else
+                            //    {
+                            //        // unexpected reply from server
+                            //    }
+                            //}
                         }
                     }
                 }
