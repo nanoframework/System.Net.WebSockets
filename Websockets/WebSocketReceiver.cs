@@ -170,8 +170,7 @@ namespace nanoframework.System.Net.Websockets
                 return SetMessageError(messageFrame, "Data messages  from clients have to be masked", WebSocketCloseStatus.ProtocolError);
             }
 
-
-            return messageFrame;
+             return messageFrame;
         }
 
         internal byte[] ReadBuffer(int messageLength)
