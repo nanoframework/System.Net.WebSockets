@@ -206,7 +206,6 @@ namespace nanoframework.System.Net.Websockets
                 return SetMessageError(messageFrame, "Data messages  from clients have to be masked", WebSocketCloseStatus.ProtocolError);
             }
 
-            messageFrame.MessageStream = new ReceiveMessageStream(messageFrame, _inputStream, messageFrame.MessageLength, _webSocket, _messageReadCallBack, _websocketReadErrorCallBack);
 
             return messageFrame;
         }

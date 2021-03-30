@@ -24,7 +24,6 @@
     <Compile Include="WebSocketFrame\MessageFrame.cs" />
     <Compile Include="WebSocketFrame\OpCode.cs" />
     <Compile Include="WebSocketFrame\ReceiveMessageFrame.cs" />
-    <Compile Include="WebSocketFrame\ReceiveMessageStream.cs" />
     <Compile Include="WebSocketFrame\SendMessageFrame.cs" />
     <Compile Include="WebSocketFrame\WebSocketCloseStatus.cs" />
     <Compile Include="WebSocketFrame\WebSocketMessageType.cs" />
