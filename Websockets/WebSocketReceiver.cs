@@ -8,16 +8,16 @@ namespace nanoframework.System.Net.Websockets
 {
     internal class WebSocketReceiver
     {
-        private NetworkStream _inputStream;
-        private bool _isServer;
-        private int _maxReceiveFrameSize;
-        private WebSocket _webSocket;
-        private WebSocketReadErrorHandler _websocketReadErrorCallBack;
+        private bool _receivingFragmentedMessage = false;
+
+        private readonly IPEndPoint _remoteEndPoint;
+        private readonly NetworkStream _inputStream;
+        private readonly bool _isServer;
+        private readonly int _maxReceiveFrameSize;
+        private readonly WebSocket _webSocket;
+        private readonly WebSocketReadErrorHandler _websocketReadErrorCallBack;
+
         internal delegate void WebSocketReadErrorHandler(object sender, WebSocketReadErrorArgs e);
-
-        IPEndPoint _remoteEndPoint;
-
-        private bool ReceivingFragmentedMessage = false;
 
         internal WebSocketReceiver(NetworkStream inputStream, IPEndPoint remoteEndpoint, WebSocket webSocket, bool isServer, int maxReceiveFrameSize, WebSocketReadErrorHandler websocketReadErrorCallBack)
         {
@@ -47,7 +47,6 @@ namespace nanoframework.System.Net.Websockets
                     var errorReturnFrame = new ReceiveMessageFrame() { EndPoint = _remoteEndPoint };
                     ReadError(ex, errorReturnFrame);
                     return errorReturnFrame;
-                    //
                 }
             }
         }
@@ -68,39 +67,50 @@ namespace nanoframework.System.Net.Websockets
                 return SetMessageError(messageFrame, "Unsuported OpCode", WebSocketCloseStatus.InvalidMessageType);
             }
 
-            if (fin && messageFrame.OpCode != OpCode.ContinuationFrame) //single frame message
+            //single frame message
+            if (fin && messageFrame.OpCode != OpCode.ContinuationFrame) 
             {
                 messageFrame.Fragmentation = FragmentationType.NotFragmented;
-                if (ReceivingFragmentedMessage && !messageFrame.IsControllFrame) //controller messages can be send during fragented messages
+
+                //controller messages can be sent between fragmented messages
+                if (_receivingFragmentedMessage && !messageFrame.IsControllFrame) 
                 {
-                    return SetMessageError(messageFrame, "Already receiving another fragmetend message", WebSocketCloseStatus.PolicyViolation);
+                    return SetMessageError(messageFrame, "Already receiving another fragmented message", WebSocketCloseStatus.PolicyViolation);
                 }
             }
-            else if (messageFrame.OpCode != OpCode.ContinuationFrame && !fin) //fin 0 and opcode !=0 -> begin fragmented message
+            //fin 0 and opcode !=0 -> begin fragmented message
+            else if (messageFrame.OpCode != OpCode.ContinuationFrame && !fin) 
             {
                 messageFrame.Fragmentation = FragmentationType.FirstFragment;
-                if (ReceivingFragmentedMessage)
+
+                if (_receivingFragmentedMessage)
                 {
-                    return SetMessageError(messageFrame, "Already receiving another fragmetend message", WebSocketCloseStatus.PolicyViolation);
+                    return SetMessageError(messageFrame, "Already receiving another fragmented message", WebSocketCloseStatus.PolicyViolation);
                 }
-                ReceivingFragmentedMessage = true;
+
+                _receivingFragmentedMessage = true;
             }
-            else if (messageFrame.OpCode == OpCode.ContinuationFrame && !fin) //fin 0 and opcode 0 -> inbetween frame of fragmetend message
+            // fin 0 and opcode 0 -> in between frame of fragmented message
+            else if (messageFrame.OpCode == OpCode.ContinuationFrame && !fin) 
             {
                 messageFrame.Fragmentation = FragmentationType.Fragment;
-                if (!ReceivingFragmentedMessage)
+
+                if (!_receivingFragmentedMessage)
                 {
-                    return SetMessageError(messageFrame, "Unexpected ContinuationFrame fragmetend frame", WebSocketCloseStatus.PolicyViolation);
+                    return SetMessageError(messageFrame, "Unexpected ContinuationFrame fragmented frame", WebSocketCloseStatus.PolicyViolation);
                 }
             }
-            else if (messageFrame.OpCode == OpCode.ContinuationFrame && fin) //fin 1 and opcode 0 -> last of fragmented message.
+            //fin 1 and opcode 0 -> last of fragmented message
+            else if (messageFrame.OpCode == OpCode.ContinuationFrame && fin) 
             {
                 messageFrame.Fragmentation = FragmentationType.FinalFragment;
-                if (!ReceivingFragmentedMessage)
+
+                if (!_receivingFragmentedMessage)
                 {
                     return SetMessageError(messageFrame, "Unexpected ContinuationFrame FinalContinuationFrame", WebSocketCloseStatus.PolicyViolation);
                 }
-                ReceivingFragmentedMessage = false;
+
+                _receivingFragmentedMessage = false;
             }
             else
             {
@@ -108,10 +118,11 @@ namespace nanoframework.System.Net.Websockets
 
             }
 
+            // must be true, "All messages from the client to the server have this bit set"
+            messageFrame.IsMasked = (header[1] & 0b10000000) != 0;
 
-            messageFrame.IsMasked = (header[1] & 0b10000000) != 0; // must be true, "All messages from the client to the server have this bit set"
-            messageFrame.MessageLength = header[1] % 128; // & 0111 1111
-
+            // & 0111 1111
+            messageFrame.MessageLength = header[1] % 128; 
 
             if (messageFrame.MessageLength == 126)
             {
@@ -122,7 +133,6 @@ namespace nanoframework.System.Net.Websockets
             }
             else if (messageFrame.MessageLength == 127)
             {
-
                 byte[] largeLargeMessageLength = ReadFixedSizeBuffer(8);
 
                 largeLargeMessageLength = WebSocketHelpers.ReverseBytes(largeLargeMessageLength);
@@ -140,7 +150,7 @@ namespace nanoframework.System.Net.Websockets
 
             if (messageFrame.MessageLength > 125 && messageFrame.IsControllFrame)
             {
-                return SetMessageError(messageFrame, $"Controll frames can only have a length of max 125 bytes", WebSocketCloseStatus.MessageTooBig);
+                return SetMessageError(messageFrame, $"Control frames can only have a length of max 125 bytes", WebSocketCloseStatus.MessageTooBig);
             }
 
             if (messageFrame.MessageLength > _maxReceiveFrameSize)
@@ -152,12 +162,13 @@ namespace nanoframework.System.Net.Websockets
             {
                 messageFrame.Masks = ReadFixedSizeBuffer(4);
             }
-            else if ((int)messageFrame.OpCode < 5 && _isServer) // not a controll frame
+            // not a control frame
+            else if ((int)messageFrame.OpCode < 5 && _isServer)
             {
                 return SetMessageError(messageFrame, "Data messages  from clients have to be masked", WebSocketCloseStatus.ProtocolError);
             }
 
-             return messageFrame;
+            return messageFrame;
         }
 
         internal byte[] ReadBuffer(int messageLength)
@@ -174,13 +185,14 @@ namespace nanoframework.System.Net.Websockets
         private void ReadError(Exception ex, ReceiveMessageFrame frame)
         {
             frame.ErrorMessage = ex.Message;
-            _websocketReadErrorCallBack?.Invoke(this, new WebSocketReadErrorArgs() { frame = frame });
+            _websocketReadErrorCallBack?.Invoke(this, new WebSocketReadErrorArgs() { Frame = frame });
         }
 
         byte[] ReadFixedSizeBuffer(int size)
         {
             byte[] buffer = new byte[size];
             int offset = 0;
+
             while (size > 0)
             {
                 int bytes = _inputStream.Read(buffer, offset, size);
@@ -194,7 +206,8 @@ namespace nanoframework.System.Net.Websockets
 
     internal class WebSocketReadErrorArgs : EventArgs
     {
-        public ReceiveMessageFrame frame { get; set; }
-        public string ErrorMessage => frame.ErrorMessage;
+        public ReceiveMessageFrame Frame { get; set; }
+
+        public string ErrorMessage => Frame.ErrorMessage;
     }
 }

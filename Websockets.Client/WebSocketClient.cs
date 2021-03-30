@@ -5,7 +5,6 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Threading;
 
 namespace nanoframework.System.Net.Websockets.Client
 {
@@ -43,7 +42,7 @@ namespace nanoframework.System.Net.Websockets.Client
         /// <summary>
         /// The type of SslVerification to use.
         /// </summary>
-        public SslVerification SslVerification { get; private set; } = SslVerification.NoVerification;
+        public SslVerification SslVerification { get; private set; } = SslVerification.CertificateRequired;
         
         private Socket _tcpSocket;
         private X509Certificate _certificate = null;
@@ -72,8 +71,15 @@ namespace nanoframework.System.Net.Websockets.Client
             State = WebSocketFrame.WebSocketState.Connecting;
            
             var splitUrl = uri.ToLower().Split(new char[] { ':', '/', '/' }, 4);
-            if (splitUrl.Length == 4 && splitUrl[0] == "ws") IsSSL = false;
-            else if (splitUrl.Length == 4 && splitUrl[0] == "wss") IsSSL = true;
+
+            if (splitUrl.Length == 4 && splitUrl[0] == "ws")
+            {
+                IsSSL = false;
+            }
+            else if (splitUrl.Length == 4 && splitUrl[0] == "wss")
+            {
+                IsSSL = true;
+            }
             else
             {
                 throw new Exception("websocket url should start with 'ws://' or 'wss://'");
@@ -82,16 +88,19 @@ namespace nanoframework.System.Net.Websockets.Client
             string prefix = "/";
 
             splitUrl = splitUrl[3].Split(new char[] { '/' }, 2);
+
             if (splitUrl.Length == 2)
             {
                 prefix += splitUrl[1];
             }
+
             Prefix = prefix;
 
             Port = IsSSL ? 443 : 80;
 
             splitUrl = splitUrl[0].Split(new char[] { ':' }, 2);
             Host = splitUrl[0];
+
             if (splitUrl.Length == 2)
             {
                 if (splitUrl[1].Length < 8)
@@ -130,7 +139,6 @@ namespace nanoframework.System.Net.Websockets.Client
                     {
                         sslStream.AuthenticateAsClient(Host, SslProtocol);
                     }
-                    //Debug.WriteLine($"{sslStream.Length}  bytes to read");
 
                     _networkStream = sslStream;
                 }
@@ -148,7 +156,6 @@ namespace nanoframework.System.Net.Websockets.Client
                 Debug.WriteLine($"** Socket exception occurred: {ex.Message} error code {ex.ErrorCode}!**");
             }
 
-            //WebSocketClientConnect(stream, ep, messageReceivedHandler,prefix, Host);
             ConnectionClosed += WebSocket_ConnectionClosed;
         }
 
@@ -175,11 +182,14 @@ namespace nanoframework.System.Net.Websockets.Client
             int bytesRead = _networkStream.Read(bufferStart, 0, bufferStart.Length);
 
             bool correctHandshake = false;
+
             if (bytesRead == bufferStart.Length)
             {
                 if (Encoding.UTF8.GetString(bufferStart, 0, bufferStart.Length).ToLower() == beginHeader)
-                { //right http request
+                { 
+                    //right http request
                     bytesRead = _networkStream.Read(buffer, 0, buffer.Length);
+                    
                     if (bytesRead > 20)
                     {
                         var headers = WebSocketHelpers.ParseHeaders(Encoding.UTF8.GetString(buffer, 0, bytesRead));

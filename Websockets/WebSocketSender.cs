@@ -8,19 +8,33 @@ namespace nanoframework.System.Net.Websockets
 {
     public class WebSocketSender
     {
-        Stack ControllerMessages = new Stack();
-        Queue MessageFrames = new Queue();
+        private readonly bool _isServer;
+        private readonly NetworkStream _outputStream;
+        private readonly Thread _sendThread;
+        private readonly Random _randomizer = new Random();
+
+        private readonly AutoResetEvent _shutdownEvent = new AutoResetEvent(false);
+        private readonly WebSocketWriteErrorHandler _webSocketWriteErrorCallback;
+
+        private readonly Stack _controlMessages = new Stack();
+        private readonly Queue _messageFrames = new Queue();
+
         //public int MaxBufferSize = 0; //TODO: Cap the number of bytes that can live within the buffer. Else it can clug up and run out of memory. 
-        private object _controllerMessageLock = new object();
-        private object _messageFrameLock = new object();
-        private bool _isServer;
-        private NetworkStream _outputStream;
-        private Thread _sendThread;
-        private Random randomizer = new Random();
-        private AutoResetEvent are = new AutoResetEvent(false);
-        private WebSocketWriteErrorHandler _webSocketWriteErrorCallback;
-        internal delegate void WebSocketWriteErrorHandler(object sender, WebSocketWriteErrorArgs e);
-        internal bool CloseMessageSend { get; private set; } = false;
+
+        internal delegate void WebSocketWriteErrorHandler(object sender, WebSocketWriteErrorEventArgs e);
+        
+        internal bool CloseMessageSent { get; private set; } = false;
+
+        internal bool ControlMessagesPresent
+        {
+            get
+            {
+                lock (_controlMessages.SyncRoot)
+                {
+                    return _controlMessages.Count > 0;
+                }
+            }
+        }
 
         internal WebSocketSender(NetworkStream outputStream, bool isServer, WebSocketWriteErrorHandler webSocketWriteErrorCallback)
         {
@@ -29,67 +43,70 @@ namespace nanoframework.System.Net.Websockets
             _sendThread = new Thread(SendMessageWorkerThread);
             _sendThread.Start();
             _webSocketWriteErrorCallback = webSocketWriteErrorCallback;
-            
         }
         
         internal void QueueMessage(SendMessageFrame sendMessage)
         {
             if (sendMessage.IsControllFrame)
             {
-                lock (_controllerMessageLock)
+                lock (_controlMessages.SyncRoot)
                 {
-                    ControllerMessages.Push(sendMessage);
+                    _controlMessages.Push(sendMessage);
                 }
             }
             else
             {
-                lock (_messageFrameLock)
+                lock (_messageFrames.SyncRoot)
                 {
-                    MessageFrames.Enqueue(sendMessage);
+                    _messageFrames.Enqueue(sendMessage);
                 }
             }
 
-            are.Set();
-
+            _shutdownEvent.Set();
         }
 
         internal void StopSender()
         {
-             
-            CloseMessageSend = true;
-            are.Set();
-        }
+            CloseMessageSent = true;
 
+            _shutdownEvent.Set();
+        }
 
         private void SendMessageWorkerThread()
         {
-            bool controllerFrameSend = false;
-            bool messageFrameSend = false;
-            while (!CloseMessageSend) 
+            bool controlFrameSent;
+            bool messageFrameSent = false;
+
+            while (!CloseMessageSent) 
             {
-                controllerFrameSend = CheckControllerMessages();
-                if (!CloseMessageSend)
+                controlFrameSent = ProcessControlMessages();
+            
+                if (!CloseMessageSent)
                 {
-                    messageFrameSend = CheckMessagesFrames();
+                    messageFrameSent = ProcessMessageFrames();
                 }
 
-                if(!controllerFrameSend && !messageFrameSend)
+                if(!controlFrameSent && !messageFrameSent)
                 {
-                    are.WaitOne(); 
+                    _shutdownEvent.WaitOne(); 
                 }
             }
+
             _outputStream.Close();
+            
             Debug.WriteLine($"SendThread stopped");
         }
 
-        private bool CheckMessagesFrames()
+        private bool ProcessMessageFrames()
         {
             SendMessageFrame messageFrame = null;
-            lock (_controllerMessageLock)
+
+            lock (_messageFrames.SyncRoot)
             {
-                if (MessageFrames.Count > 0) //always do controller messages first in last-in first-out order
+                // get next message from queue
+                if (_messageFrames.Count > 0)
                 {
-                    messageFrame = (SendMessageFrame)MessageFrames.Dequeue();
+                    messageFrame = (SendMessageFrame)_messageFrames.Dequeue();
                 }
             }
 
@@ -98,15 +115,16 @@ namespace nanoframework.System.Net.Websockets
                 if (!messageFrame.IsFragmented || messageFrame.FragmentSize > messageFrame.Buffer.Length)
                 {
                     // message is not fragmented or fragment is smaller that the buffer size
+                    // good to go in a single batch
                     SendFrame(messageFrame);
                 }
                 else
                 {
                     // large message, need to fragment
 
+                    // compute number of frames required to send the message
                     int offset = 0;
 
-                    // compute number of frames required to send the message
                     int numberOfFrames = messageFrame.Buffer.Length / messageFrame.FragmentSize + (messageFrame.Buffer.Length % messageFrame.FragmentSize > 0 ? 1 : 0); 
 
                     for (int i = 0; i < numberOfFrames; i++)
@@ -115,24 +133,29 @@ namespace nanoframework.System.Net.Websockets
                         if (i == 0) 
                         {
                             SendFrame(messageFrame, FragmentationType.FirstFragment, offset, messageFrame.FragmentSize);
+                            
+                            // update offset
                             offset += messageFrame.FragmentSize;
-
                         }
                         //end frame set fin and opcode 0
                         else if (i + 1  == numberOfFrames)
                         {
                             SendFrame(messageFrame, FragmentationType.FinalFragment, offset, messageFrame.Buffer.Length - offset);
-
                         }
                         // in between frames OpCode 0 fin = 1
                         else
                         {
                             SendFrame(messageFrame, FragmentationType.Fragment, offset, messageFrame.FragmentSize);
+
+                            // update offset
                             offset += messageFrame.FragmentSize;
                         }
 
-                        //check controllerMessages each time
-                        CheckControllerMessages();
+                        // check for controllerMessages each time
+                        if(ControlMessagesPresent)
+                        {
+                            ProcessControlMessages();
+                        }
                     }
                 }
 
@@ -142,37 +165,51 @@ namespace nanoframework.System.Net.Websockets
             return false;
         }
 
-        private bool CheckControllerMessages()
+        private bool ProcessControlMessages()
         {
             bool itemSend = false;
             bool keepChecking = true;
+
             while (keepChecking)
             {
-                SendMessageFrame controllerFrame = null;
-                lock (_controllerMessageLock)
-                {
-                    if (ControllerMessages.Count > 0) //always do controller messages first in last-in first-out order
-                    {
-                        controllerFrame = (SendMessageFrame)ControllerMessages.Pop();
-                    }
-                    else keepChecking = false;
-                }
+                SendMessageFrame controlFrame = null;
 
-                if (controllerFrame != null)
+                lock (_controlMessages.SyncRoot)
                 {
-                    SendFrame(controllerFrame);
-                    if(controllerFrame.OpCode == OpCode.ConnectionCloseFrame) //close the connection
+                    // always do controller messages first in last-in first-out order
+                    if (_controlMessages.Count > 0)
+                    {
+                        controlFrame = (SendMessageFrame)_controlMessages.Pop();
+                    }
+                    else
                     {
                         keepChecking = false;
-                        CloseMessageSend = true;
-                        are.WaitOne(); //wait until resouces can be released. 
                     }
+                }
+
+                if (controlFrame != null)
+                {
+                    SendFrame(controlFrame);
+
+                    if(controlFrame.OpCode == OpCode.ConnectionCloseFrame)
+                    {
+                        // request to close the connection
+
+                        // no need to keep checking messages stack
+                        keepChecking = false;
+
+                        // close message was sent
+                        CloseMessageSent = true;
+
+                        // wait until resources can be released. 
+                        _shutdownEvent.WaitOne();
+                    }
+
                     itemSend = true;
                 }
             }
 
-            return itemSend;
-            
+            return itemSend;   
         }
 
 
@@ -186,49 +223,62 @@ namespace nanoframework.System.Net.Websockets
 
             //set header
             int tempBufLength = 2;
+
             if (mask == 128) {
                 tempBufLength += 4;
                 messageOffset += 4;
             }
+
             if (mesLength > ushort.MaxValue)
             {
                 tempBufLength += 8;
                 messageOffset += 8;
             }
+
             else if (mesLength > 125)
             {
                 tempBufLength += 2;
                 messageOffset += 2;
             }
+
             tempBufLength += mesLength;
 
             byte[] tempBuf = new byte[tempBufLength];
 
-            tempBuf[0] = (byte)opcode; //opcode is set
+            //opcode is set
+            tempBuf[0] = (byte)opcode; 
             tempBuf[0] += (byte)fin;
             tempBuf[1] = (byte)mask;
-            if (mesLength < 126) //set 1 byte msglen
+
+            //set 1 byte msglen
+            if (mesLength < 126) 
             {
                 tempBuf[1] += (byte)mesLength;
-            } else if (mesLength < ushort.MaxValue)
+            } 
+            else if (mesLength < ushort.MaxValue)
             {
                 tempBuf[1] += 126;
+
                 WebSocketHelpers.ReverseBytes(BitConverter.GetBytes((UInt16)mesLength)).CopyTo(tempBuf, 2);
             }
             else
             {
                 tempBuf[1] += 127;
+
                 WebSocketHelpers.ReverseBytes(BitConverter.GetBytes((UInt64)mesLength)).CopyTo(tempBuf, 2);
             }
 
             if (mask == 128) 
             {
                 var masks = new byte[4];
-                randomizer.NextBytes(masks);
+
+                _randomizer.NextBytes(masks);
+
                 for (int i = offset; i < mesLength; ++i)
                 {
                     frame.Buffer[i] = (byte)(frame.Buffer[i] ^ masks[i % 4]);
                 }
+
                 masks.CopyTo(tempBuf, messageOffset - 4);
             }
 
@@ -241,18 +291,21 @@ namespace nanoframework.System.Net.Websockets
             catch(Exception ex)
             {
                 Debug.WriteLine(ex.Message);
+
                 frame.ErrorMessage = ex.Message;
-                CloseMessageSend = true; //can not send a close message because something is wrong with the write stream so no need to await this. 
-                _webSocketWriteErrorCallback?.Invoke(this, new WebSocketWriteErrorArgs() { frame = frame });
+
+                //can not send a close message because something is wrong with the write stream so no need to await this
+                CloseMessageSent = true; 
+
+                _webSocketWriteErrorCallback?.Invoke(this, new WebSocketWriteErrorEventArgs() { Frame = frame });
             }
-
         }
-
     }
 
-    internal class WebSocketWriteErrorArgs : EventArgs
+    internal class WebSocketWriteErrorEventArgs : EventArgs
     {
-        public SendMessageFrame frame { get; set; }
-        public string ErrorMessage => frame.ErrorMessage;
+        public SendMessageFrame Frame { get; set; }
+
+        public string ErrorMessage => Frame.ErrorMessage;
     }
 }

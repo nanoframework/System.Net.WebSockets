@@ -146,8 +146,8 @@ namespace nanoframework.System.Net.Websockets
             _webSocketSender = new WebSocketSender(stream, IsServer, OnWriteError);
             _receiveThread = new Thread(ReceiveAndControllThread);
             _receiveThread.Start();
-            State = WebSocketState.Open;
 
+            State = WebSocketState.Open;
         }
 
         // Summary:
@@ -170,7 +170,7 @@ namespace nanoframework.System.Net.Websockets
 
         public bool Send(byte[] buffer, WebSocketMessageType messageType, int fragmentSize = -1)
         {
-            return QueueSendMessage(new SendMessageFrame()
+            return QueueMessageToSend(new SendMessageFrame()
             {
                 Buffer = buffer,
                 FragmentSize = fragmentSize < 0 ? MaxFragmentSize : fragmentSize,
@@ -232,9 +232,16 @@ namespace nanoframework.System.Net.Websockets
         
         public void Close(WebSocketCloseStatus closeStatus = WebSocketCloseStatus.Empty, string statusDescription = null)
         {
-            if (State != WebSocketState.Open) return; //already closing or closed
+            if (State != WebSocketState.Open)
+            {
+                //already closing or closed
+                return; 
+            }
+
             State = WebSocketState.CloseSent;
+
             _closingTime = DateTime.UtcNow;
+
             RawClose(closeStatus, statusDescription == null ? null : Encoding.UTF8.GetBytes(statusDescription), closeStatus == WebSocketCloseStatus.EndpointUnavailable);
         }
         
@@ -244,6 +251,7 @@ namespace nanoframework.System.Net.Websockets
         public void Abort()
         {
             State = WebSocketState.Aborted;
+
             HardClose(); 
         }
 
@@ -251,11 +259,18 @@ namespace nanoframework.System.Net.Websockets
         private void RawClose(WebSocketCloseStatus closeStatus = WebSocketCloseStatus.Empty, byte[] buffer = null, bool CloseImmediately = false)
         {
             //send closing message which needs to be awaited for a period
-            if (!(State == WebSocketState.Open || State == WebSocketState.CloseReceived)) return; //already closing or closed
+            if (!(State == WebSocketState.Open || State == WebSocketState.CloseReceived))
+            {
+                //already closing or closed
+                return; 
+            }
+
             _closeStatus = closeStatus;
 
             byte[] sendBuffer = new byte[0];
-            if (!(closeStatus == WebSocketCloseStatus.ClosedAbnormally || closeStatus == WebSocketCloseStatus.Empty)) {
+
+            if (!(closeStatus == WebSocketCloseStatus.ClosedAbnormally || closeStatus == WebSocketCloseStatus.Empty)) 
+            {
                 if (buffer == null)
                 {
                     sendBuffer = new byte[2];
@@ -276,7 +291,7 @@ namespace nanoframework.System.Net.Websockets
                 sendBuffer[1] = closeStatusBytes[0];
             }
 
-            QueueSendMessage(new SendMessageFrame()
+            QueueMessageToSend(new SendMessageFrame()
             {
                 Buffer = sendBuffer,
                 OpCode = OpCode.ConnectionCloseFrame,
@@ -285,43 +300,45 @@ namespace nanoframework.System.Net.Websockets
             if (CloseImmediately)
             {
                 int msWaited = 0;
-                while (!_webSocketSender.CloseMessageSend ) 
+
+                while (!_webSocketSender.CloseMessageSent ) 
                 {
                     msWaited += 50;
                     Thread.Sleep(50);
                     State = WebSocketState.CloseSent;
                     _closingTime = DateTime.UtcNow;
                 }
+
                 HardClose();
             }
-            
-            
         }
 
         private void HardClose()
         {
             State = WebSocketState.Closed;
+
             StopReceiving();
             _webSocketSender.StopSender();
+
             Debug.WriteLine($"Connection - {RemoteEndPoint.ToString()} - Closed");
          
-            
-            ConnectionClosed?.Invoke(this, new EventArgs());
-
-            
+            ConnectionClosed?.Invoke(this, new EventArgs());   
         }
 
-        private bool QueueSendMessage(SendMessageFrame frame)
+        private bool QueueMessageToSend(SendMessageFrame frame)
         {
-            if (State != WebSocketState.Open && frame.OpCode != OpCode.ConnectionCloseFrame) //if connection is closing only a close respond can be send.
+            // if connection is closing only a close respond can be send.
+            if (State != WebSocketState.Open && frame.OpCode != OpCode.ConnectionCloseFrame)
             {
                 Debug.WriteLine($"Connection - {RemoteEndPoint.ToString()} - is closing cannot send messages");
                 return false;
             }
-            frame.EndPoint = RemoteEndPoint;
-            _webSocketSender.QueueMessage(frame);
-            return true;
 
+            frame.EndPoint = RemoteEndPoint;
+
+            _webSocketSender.QueueMessage(frame);
+
+            return true;
         }
 
         private void OnReadError(object sender, WebSocketReadErrorArgs e)
@@ -329,17 +346,17 @@ namespace nanoframework.System.Net.Websockets
             if (!_hasError)
             {
                 _hasError = true;
-                Debug.WriteLine($"{e.frame.EndPoint.ToString()} error - {e.ErrorMessage}");
-                RawClose(e.frame.CloseStatus, Encoding.UTF8.GetBytes(e.ErrorMessage), true);
+                Debug.WriteLine($"{e.Frame.EndPoint.ToString()} error - {e.ErrorMessage}");
+                RawClose(e.Frame.CloseStatus, Encoding.UTF8.GetBytes(e.ErrorMessage), true);
             }
         }
 
-        private void OnWriteError(object sender, WebSocketWriteErrorArgs e)
+        private void OnWriteError(object sender, WebSocketWriteErrorEventArgs e)
         {
             if (!_hasError)
             {
                 _hasError = true;
-                Debug.WriteLine($"{e.frame.EndPoint.ToString()} error - {e.ErrorMessage}");
+                Debug.WriteLine($"{e.Frame.EndPoint.ToString()} error - {e.ErrorMessage}");
 
                 HardClose();
             }
