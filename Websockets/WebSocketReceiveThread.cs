@@ -16,7 +16,7 @@ namespace nanoframework.System.Net.Websockets
         private WebSocketSender _webSocketSender;
         private bool _pinging = false;
         private DateTime _pingTime = DateTime.UtcNow;
-        private AutoResetEvent are = new AutoResetEvent(false);
+
         private bool _stopped = false;
         private byte[] messageHeader = new byte[2];
         private WebSocketCloseStatus _closeStatus = WebSocketCloseStatus.Empty;
@@ -38,8 +38,6 @@ namespace nanoframework.System.Net.Websockets
                         _hasError = true;
                         Debug.WriteLine($"{RemoteEndPoint} closed with error: {messageFrame.ErrorMessage}");
                         RawClose(messageFrame.CloseStatus, Encoding.UTF8.GetBytes(messageFrame.ErrorMessage), true);
-                        
-                        
                     }
                     else if (messageFrame.IsControllFrame)
                     {
@@ -86,9 +84,22 @@ namespace nanoframework.System.Net.Websockets
                     }
                     else
                     {
-                        RelayMessage(messageFrame);
-                    }
+                        if (messageFrame.Error)
+                        {
+                            Debug.WriteLine($"{RemoteEndPoint.ToString()} error - {messageFrame.ErrorMessage}");
+                            RawClose(messageFrame.CloseStatus, Encoding.UTF8.GetBytes(messageFrame.ErrorMessage), true);
+                        }
+                        else
+                        {
+                            messageFrame.Buffer = _webSocketReceiver.ReadBuffer(messageFrame.MessageLength);
 
+                            Debug.WriteLine($"received message: {messageFrame.MessageType.ToString()}");
+
+                            LastContact = DateTime.UtcNow;
+
+                            OnNewMessage(messageFrame);
+                        }
+                    }
                 }
 
                 //Controlling ping and ControllerMessagesTimeout
@@ -123,9 +134,6 @@ namespace nanoframework.System.Net.Websockets
             {
                 LastContact = DateTime.UtcNow;
                 OnNewMessage(messageFrame);
-
-                are.WaitOne();
-
             }
         }
 
@@ -150,12 +158,6 @@ namespace nanoframework.System.Net.Websockets
         private void OnNewMessage(ReceiveMessageFrame message)
         {
             _messageReceivedEventHandler?.Invoke(this, new MessageReceivedEventArgs() { Frame = message });
-        }
-
-        private void OnMessageRead(object sender, EventArgs e)
-        {
-            //message is read so continue the receive thread.
-            are.Set();
         }
     }
 
