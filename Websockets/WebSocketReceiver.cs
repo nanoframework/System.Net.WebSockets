@@ -156,29 +156,25 @@ namespace nanoframework.System.Net.Websockets
 
             if (messageFrame.MessageLength == 126)
             {
-                byte[] smallLargeMessageLength = new byte[2];
-                if (_inputStream.Read(smallLargeMessageLength, 0, 2) != 2)
-                {
-                    return SetMessageError(messageFrame, "Timeout receiving message lenght", WebSocketCloseStatus.ProtocolError);
-                };
+                byte[] smallLargeMessageLength = ReadFixedSizeBuffer(2);
+
                 smallLargeMessageLength = WebSocketHelpers.ReverseBytes(smallLargeMessageLength);
                 messageFrame.MessageLength = BitConverter.ToUInt16(smallLargeMessageLength, 0);
             }
             else if (messageFrame.MessageLength == 127)
             {
 
-                byte[] largeLargeMessageLength = new byte[8];
-                if (_inputStream.Read(largeLargeMessageLength, 0, 8) != 8)
-                {
-                    return SetMessageError(messageFrame, "Timeout receiving message lenght", WebSocketCloseStatus.ProtocolError);
-                };
+                byte[] largeLargeMessageLength = ReadFixedSizeBuffer(8);
+
                 largeLargeMessageLength = WebSocketHelpers.ReverseBytes(largeLargeMessageLength);
 
                 ulong longmsglength = BitConverter.ToUInt64(largeLargeMessageLength, 0);
+
                 if (longmsglength > (ulong)_maxReceiveFrameSize)
                 {
                     return SetMessageError(messageFrame, $"max message size is {_maxReceiveFrameSize}", WebSocketCloseStatus.MessageTooBig);
                 }
+
                 messageFrame.MessageLength = (int)longmsglength;
 
             }
@@ -193,13 +189,9 @@ namespace nanoframework.System.Net.Websockets
                 return SetMessageError(messageFrame, $"max message size is {_maxReceiveFrameSize}", WebSocketCloseStatus.MessageTooBig);
             }
 
-            messageFrame.Masks = new byte[4]; ;
             if (messageFrame.IsMasked)
             {
-                if (_inputStream.Read(messageFrame.Masks, 0, 4) != 4)
-                {
-                    return SetMessageError(messageFrame, "message mask receive timeout", WebSocketCloseStatus.ProtocolError);
-                };
+                messageFrame.Masks = ReadFixedSizeBuffer(4);
             }
             else if ((int)messageFrame.OpCode < 5 && _isServer) // not a controll frame
             {
@@ -225,7 +217,19 @@ namespace nanoframework.System.Net.Websockets
             _websocketReadErrorCallBack?.Invoke(this, new WebSocketReadErrorArgs() { frame = frame });
         }
 
+        byte[] ReadFixedSizeBuffer(int size)
+        {
+            byte[] buffer = new byte[size];
+            int offset = 0;
+            while (size > 0)
+            {
+                int bytes = _inputStream.Read(buffer, offset, size);
+                offset += bytes;
+                size -= bytes;
+            }
 
+            return buffer;
+        }
     }
 
     internal class WebSocketReadErrorArgs : EventArgs
