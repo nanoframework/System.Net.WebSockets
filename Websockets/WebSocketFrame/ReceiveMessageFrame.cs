@@ -7,7 +7,6 @@ namespace nanoframework.System.Net.Websockets
     //     The Receive Message Frame
     public class ReceiveMessageFrame : MessageFrame
     {
-
         internal bool IsMasked { get; set; } = false;
 
         // Summary:
@@ -21,8 +20,10 @@ namespace nanoframework.System.Net.Websockets
         // Summary:
         //     The content length of the message in number of bytes.
         public int MessageLength { get; set; }
+        
         internal byte[] Masks { get; set; } = new byte[4];
 
+        public byte[] Buffer { get; set; }
 
         internal WebSocketCloseStatus CloseStatus { get; set; } = WebSocketCloseStatus.Empty;
     }
