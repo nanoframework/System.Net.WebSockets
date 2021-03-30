@@ -44,36 +44,9 @@ namespace nanoframework.System.Net.Websockets
 
         internal ReceiveMessageFrame StartReceivingMessage()
         {
-            byte[] messageHeader = new byte[2];
-            int numBytesReceived = 0;
             try
             {
-                
-                //if (_inputStream.DataAvailable)
-                { 
-                    numBytesReceived = _inputStream.Read(messageHeader, 0, 2);
-                }
-
-                if (numBytesReceived == 0)
-                {
-                    //TODO: Here we could let the thread sleep to safe recources.   
-                    return null;
-                }
-                else
-                {
-                    if (numBytesReceived == 1) //still wating on second header byte
-                    {
-                        numBytesReceived = 0;
-                        //if (_inputStream.DataAvailable)
-                        {
-                            numBytesReceived = _inputStream.Read(messageHeader, 1, 1);
-                        }
-                        if (numBytesReceived == 0)
-                        {
-                            return SetMessageError(new ReceiveMessageFrame() { EndPoint = _remoteEndPoint }, "Incomplete Header Received", WebSocketCloseStatus.ProtocolError);
-                        }
-                    }
-                }
+                return DecodeHeader(ReadFixedSizeBuffer(2));
             }
             catch (SocketException ex)
             {
@@ -90,7 +63,6 @@ namespace nanoframework.System.Net.Websockets
                     //
                 }
             }
-            return DecodeHeader(messageHeader);
         }
         
         private ReceiveMessageFrame DecodeHeader(byte[] header) //TODO: put everything a ReceiveMessageFrame creator... Factory style?
