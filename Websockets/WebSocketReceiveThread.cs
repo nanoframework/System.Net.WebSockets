@@ -43,8 +43,7 @@ namespace nanoframework.System.Net.Websockets
                     }
                     else if (messageFrame.IsControllFrame)
                     {
-                        byte[] buffer = new byte[messageFrame.MessageLength];
-                        messageFrame.MessageStream.Read(buffer, 0, messageFrame.MessageLength);
+                        byte[] buffer = _webSocketReceiver.ReadBuffer(messageFrame.MessageLength);
 
                         LastContact = DateTime.UtcNow;
                         switch (messageFrame.OpCode)

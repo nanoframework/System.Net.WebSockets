@@ -174,8 +174,10 @@ namespace nanoframework.System.Net.Websockets
             return messageFrame;
         }
 
-
-
+        internal byte[] ReadBuffer(int messageLength)
+        {
+            return ReadFixedSizeBuffer(messageLength);
+        }
 
         private ReceiveMessageFrame SetMessageError(ReceiveMessageFrame frame, string errorMsg, WebSocketCloseStatus closeCode)
         {
