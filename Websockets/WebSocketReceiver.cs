@@ -26,15 +26,13 @@ namespace nanoframework.System.Net.Websockets
 
         private bool ReceivingFragmentedMessage = false;
 
-
-        internal WebSocketReceiver(NetworkStream inputStream, IPEndPoint remoteEndpoint, WebSocket webSocket, bool isServer, int maxReceiveFrameSize, EventHandler messageReadCallBack, WebSocketReadErrorHandler websocketReadErrorCallBack)
+        internal WebSocketReceiver(NetworkStream inputStream, IPEndPoint remoteEndpoint, WebSocket webSocket, bool isServer, int maxReceiveFrameSize, WebSocketReadErrorHandler websocketReadErrorCallBack)
         {
             _inputStream = inputStream;
             _remoteEndPoint = remoteEndpoint;
             _isServer = isServer;
             _maxReceiveFrameSize = maxReceiveFrameSize;
             _webSocket = webSocket;
-            _messageReadCallBack = messageReadCallBack;
             _websocketReadErrorCallBack = websocketReadErrorCallBack;
 
             

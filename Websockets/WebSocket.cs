@@ -143,7 +143,7 @@ namespace nanoframework.System.Net.Websockets
 
             //start server sending and receiving async
             _messageReceivedEventHandler = messageReceivedHandler;
-            _webSocketReceiver = new WebSocketReceiver(stream, remoteEndPoint, this, IsServer, MaxReceiveFrameSize, OnMessageRead, OnReadError);
+            _webSocketReceiver = new WebSocketReceiver(stream, remoteEndPoint, this, IsServer, MaxReceiveFrameSize, OnReadError);
             _webSocketSender = new WebSocketSender(stream, IsServer, OnWriteError);
             _receiveThread = new Thread(ReceiveAndControllThread);
             _receiveThread.Start();
@@ -303,7 +303,6 @@ namespace nanoframework.System.Net.Websockets
         {
             State = WebSocketState.Closed;
             StopReceiving();
-            are.Set();
             _webSocketSender.StopSender();
             Debug.WriteLine($"Connection - {RemoteEndPoint.ToString()} - Closed");
          
