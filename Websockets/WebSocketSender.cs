@@ -87,7 +87,6 @@ namespace nanoframework.System.Net.Websockets
 
         private bool CheckMessagesFrames()
         {
-
             SendMessageFrame messageFrame = null;
             lock (_controllerMessageLock)
             {
@@ -99,30 +98,37 @@ namespace nanoframework.System.Net.Websockets
 
             if (messageFrame != null)
             {
-                int messageLength = messageFrame.Buffer.Length;
-                
                 if (!messageFrame.IsFragmented || messageFrame.FragmentSize > messageFrame.Buffer.Length)
                 {
+                    // message is not fragmented or fragment is smaller that the buffer size
                     SendFrame(messageFrame);
                 }
                 else
                 {
+                    // large message, need to fragment
+
                     int offset = 0;
-                    int numberOfFrames = messageFrame.Buffer.Length / messageFrame.FragmentSize + (messageFrame.Buffer.Length % messageFrame.FragmentSize > 0 ? 1 : 0); //number of frames to send message in
+
+                    // compute number of frames required to send the message
+                    int numberOfFrames = messageFrame.Buffer.Length / messageFrame.FragmentSize + (messageFrame.Buffer.Length % messageFrame.FragmentSize > 0 ? 1 : 0); 
+
                     for (int i = 0; i < numberOfFrames; i++)
                     {
-                        if (i == 0) //start frame fin = 0 Opcode normal
+                        //start frame fin = 0 Opcode normal
+                        if (i == 0) 
                         {
                             SendFrame(messageFrame, FragmentationType.FirstFragment, offset, messageFrame.FragmentSize);
                             offset += messageFrame.FragmentSize;
 
-                        } //start frame
-                        else if(i + 1  == numberOfFrames) //end frame set fin and opcode 0
+                        }
+                        //end frame set fin and opcode 0
+                        else if (i + 1  == numberOfFrames)
                         {
                             SendFrame(messageFrame, FragmentationType.FinalFragment, offset, messageFrame.Buffer.Length - offset);
 
                         }
-                        else //in between frames OpCode 0 fin = 1
+                        // in between frames OpCode 0 fin = 1
+                        else
                         {
                             SendFrame(messageFrame, FragmentationType.Fragment, offset, messageFrame.FragmentSize);
                             offset += messageFrame.FragmentSize;
@@ -166,7 +172,6 @@ namespace nanoframework.System.Net.Websockets
                     }
                     itemSend = true;
                 }
-
             }
 
             return itemSend;
