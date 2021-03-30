@@ -1,10 +1,7 @@
-﻿using nanoframework.System.Net.Websockets.WebSocketFrame;
-using System;
+﻿using System;
 using System.Collections;
 using System.Diagnostics;
-using System.IO;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 
 namespace nanoframework.System.Net.Websockets

@@ -1,28 +1,21 @@
 ﻿using nanoframework.System.Net.Websockets.WebSocketFrame;
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading;
 
 namespace nanoframework.System.Net.Websockets
 {
     internal class WebSocketReceiver
     {
-
         private NetworkStream _inputStream;
         private bool _isServer;
         private int _maxReceiveFrameSize;
         private WebSocket _webSocket;
-        private EventHandler _messageReadCallBack;
         private WebSocketReadErrorHandler _websocketReadErrorCallBack;
         internal delegate void WebSocketReadErrorHandler(object sender, WebSocketReadErrorArgs e);
 
-
         IPEndPoint _remoteEndPoint;
-
 
         private bool ReceivingFragmentedMessage = false;
 
@@ -34,10 +27,6 @@ namespace nanoframework.System.Net.Websockets
             _maxReceiveFrameSize = maxReceiveFrameSize;
             _webSocket = webSocket;
             _websocketReadErrorCallBack = websocketReadErrorCallBack;
-
-            
-
-            
         }
 
         internal ReceiveMessageFrame StartReceivingMessage()

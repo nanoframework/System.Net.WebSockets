@@ -191,29 +191,6 @@ namespace nanoframework.System.Net.Websockets.Client
                         {
                             Debug.WriteLine("Websocket Client connected");
                             correctHandshake = true;
-                            //byte[] tempbuffer = new byte[] { 0x81, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58 };
-                            
-                            //_networkStream.Write(tempbuffer, 0, tempbuffer.Length);
-                            //Thread.Sleep(300);
-
-                            //// read HELLO
-                            //byte[] retBuffer = new byte[7];
-                            //bytesRead = _networkStream.Read(retBuffer, 0, 7);
-
-                            //if (bytesRead == 7)
-                            //{
-                            //    // check if we do have an HELLO
-                            //    var s = Encoding.UTF8.GetString(retBuffer, 2, retBuffer.Length - 2);
-
-                            //    if (s == "Hello")
-                            //    {
-
-                            //    }
-                            //    else
-                            //    {
-                            //        // unexpected reply from server
-                            //    }
-                            //}
                         }
                     }
                 }
@@ -236,6 +213,5 @@ namespace nanoframework.System.Net.Websockets.Client
             base.Dispose();
             _tcpSocket.Close();
         }
-
     }
 }

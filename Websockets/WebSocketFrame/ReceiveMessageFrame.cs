@@ -1,5 +1,4 @@
 ﻿using nanoframework.System.Net.Websockets.WebSocketFrame;
-using System.Net;
 
 namespace nanoframework.System.Net.Websockets
 {

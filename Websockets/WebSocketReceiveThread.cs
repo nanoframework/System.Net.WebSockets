@@ -8,8 +8,6 @@ namespace nanoframework.System.Net.Websockets
 {
     partial class WebSocket
     {
-        
-
         internal DateTime _closingTime = DateTime.UtcNow;
         private MessageReceivedEventHandler _messageReceivedEventHandler;       
         private WebSocketReceiver _webSocketReceiver;
