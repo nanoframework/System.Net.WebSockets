@@ -21,6 +21,7 @@ namespace nanoframework.System.Net.Websockets
 
         private NetworkStream _networkStream;
         private readonly object _syncLock = new object();
+        private X509Certificate _certificate = null;
 
         /// <summary>
         /// If a secure connection is used.
@@ -49,12 +50,27 @@ namespace nanoframework.System.Net.Websockets
         /// <summary>
         /// The type of SslVerification to use.
         /// </summary>
-        public SslVerification SslVerification { get; private set; } = SslVerification.CertificateRequired;
+        public SslVerification SslVerification { get; set; } = SslVerification.CertificateRequired;
+
+        /// <summary>
+        /// Gets or sets the root CA certificate used to authenticate with secure
+        /// servers.  This certificate is used only for wss connections; ws connections do not require this.
+        /// </summary>
+        public X509Certificate CACertificate
+        {
+            get { return _certificate; }
+            set { _certificate = value; }
+        }
+
+        /// <summary>
+        /// Option to use the certificate stored in the device as client or server certificate. 
+        /// The default option is false.
+        /// </summary>
+        public bool UseStoredDeviceCertificate { get; set; } = false;
 
         public override WebSocketState State { get; set; } = WebSocketState.Closed;
 
         private Socket _tcpSocket;
-        private readonly X509Certificate _certificate = null;
 
         public event MessageReceivedEventHandler MessageReceived
         {
@@ -183,6 +199,8 @@ namespace nanoframework.System.Net.Websockets
                 {
                     SslStream sslStream = new SslStream(_tcpSocket);
                     sslStream.SslVerification = SslVerification;
+                    sslStream.UseStoredDeviceCertificate = UseStoredDeviceCertificate;
+
                     if (SslVerification != SslVerification.NoVerification && _certificate != null)
                     {
                         sslStream.AuthenticateAsClient(Host, null, _certificate, SslProtocol);
