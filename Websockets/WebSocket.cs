@@ -34,7 +34,7 @@ namespace nanoframework.System.Net.Websockets
         //
         // Summary:
         //     The UTC time of the last received message or Controller message  
-        public DateTime LastContactTimeStamp { get; internal set; }
+        internal DateTime LastContactTimeStamp;
         //
         // Summary:
         //     The timeout which specifies how long to wait for a message before closing
