@@ -200,6 +200,8 @@ namespace nanoframework.System.Net.Websockets
                 size -= bytes;
             }
 
+            
+
             return buffer;
         }
     }

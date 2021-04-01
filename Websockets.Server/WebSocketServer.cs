@@ -319,64 +319,66 @@ namespace nanoframework.System.Net.Websockets.Server
         private bool HandleTcpWebSocketRequest(Socket networkSocket, string prefix = "/", string serverName = "NFWebsocketServer") 
         {
 
-            //WebSocketStream networkStream = new WebSocketStream(new NetworkStream(networkSocket));
-            
+            NetworkStream networkStream = new NetworkStream(networkSocket);
 
-            //string beginHeader = ($"GET {prefix} HTTP/1.1".ToLower());
-            //byte[] bufferStart = new byte[beginHeader.Length];
-            //byte[] buffer = new byte[600];
 
-            //int bytesRead = networkStream.Read(bufferStart, 0, bufferStart.Length);
-            //if (bytesRead == bufferStart.Length)
-            //{
-            //    if (Encoding.UTF8.GetString(bufferStart, 0 , bufferStart.Length).ToLower() == beginHeader)
-            //    { //right http request
-            //        bytesRead = networkStream.Read(buffer, 0, buffer.Length);
-            //        if (bytesRead > 20)
-            //        {
-            //            var headers = WebSocketHelpers.ParseHeaders(Encoding.UTF8.GetString(buffer, 0, bytesRead));
+            string beginHeader = ($"GET {prefix} HTTP/1.1".ToLower());
+            byte[] bufferStart = new byte[beginHeader.Length];
+            byte[] buffer = new byte[600];
 
-            //            if (((string)headers["connection"]).ToLower() == "upgrade" && ((string)headers["upgrade"]).ToLower() == "websocket" && headers["sec-websocket-key"] != null)
-            //            {
-            //                if (_webSocketClientsPool.Count >= _webSocketClientsPool.Max) {
-            //                    byte[] serverFullResponse = Encoding.UTF8.GetBytes($"HTTP/1.1 503 Websocket Server is full\r\n\r\n");
-            //                    networkStream.Write(serverFullResponse, 0, serverFullResponse.Length);
-            //                    return false;
-            //                } 
-            //                //calculate sec-websocket-key and complete handshake
-            //                string swk = (string)headers["sec-websocket-key"];
-            //                string swka = swk + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"; //default signature for websocket
-            //                byte[] swkaSha1 = WebSocketHelpers.ComputeHash(swka);
-            //                string swkaSha1Base64 = Convert.ToBase64String(swkaSha1);
-            //                byte[] response = Encoding.UTF8.GetBytes($"HTTP/1.1 101 Web Socket Protocol Handshake\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: {swkaSha1Base64}\r\nServer: {ServerName}\r\nUpgrade: websocket\r\n\r\n");
-            //                networkStream.Write(response, 0, response.Length);
+            int bytesRead = networkStream.Read(bufferStart, 0, bufferStart.Length);
+            if (bytesRead == bufferStart.Length)
+            {
+                if (Encoding.UTF8.GetString(bufferStart, 0, bufferStart.Length).ToLower() == beginHeader)
+                { //right http request
+                    bytesRead = networkStream.Read(buffer, 0, buffer.Length);
+                    if (bytesRead > 20)
+                    {
+                        var headers = WebSocketHelpers.ParseHeaders(Encoding.UTF8.GetString(buffer, 0, bytesRead));
 
-            //                var webSocketClient = new WebSocketServerClient(_options);
-            //                webSocketClient.ConnectToStream(networkStream, (IPEndPoint)networkSocket.RemoteEndPoint, onMessageReceived);
-            //                if(_webSocketClientsPool.Add(webSocketClient)) { //check if clients are not full again
-            //                    WebSocketOpened?.Invoke(this, new WebSocketOpenedEventArgs() { EndPoint = webSocketClient.RemoteEndPoint });
-            //                    webSocketClient.ConnectionClosed += OnConnectionClosed;
-            //                }
-            //                else
-            //                {
-            //                    webSocketClient.Dispose();
-            //                    return false;
-            //                }
-            //            }
+                        if (((string)headers["connection"]).ToLower() == "upgrade" && ((string)headers["upgrade"]).ToLower() == "websocket" && headers["sec-websocket-key"] != null)
+                        {
+                            if (_webSocketClientsPool.Count >= _webSocketClientsPool.Max)
+                            {
+                                byte[] serverFullResponse = Encoding.UTF8.GetBytes($"HTTP/1.1 503 Websocket Server is full\r\n\r\n");
+                                networkStream.Write(serverFullResponse, 0, serverFullResponse.Length);
+                                return false;
+                            }
+                            //calculate sec-websocket-key and complete handshake
+                            string swk = (string)headers["sec-websocket-key"];
+                            string swka = swk + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"; //default signature for websocket
+                            byte[] swkaSha1 = WebSocketHelpers.ComputeHash(swka);
+                            string swkaSha1Base64 = Convert.ToBase64String(swkaSha1);
+                            byte[] response = Encoding.UTF8.GetBytes($"HTTP/1.1 101 Web Socket Protocol Handshake\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: {swkaSha1Base64}\r\nServer: {ServerName}\r\nUpgrade: websocket\r\n\r\n");
+                            networkStream.Write(response, 0, response.Length);
 
-            //        }
-            //        else
-            //        {
-            //            networkStream.Close();
-            //            return false;
-            //        }
-            //    }
-            //}
-            //else
-            //{
-            //    networkStream.Close();
-            //    return false;
-            //}
+                            var webSocketClient = new WebSocketServerClient(_options);
+                            webSocketClient.ConnectToStream(networkStream, (IPEndPoint)networkSocket.RemoteEndPoint, onMessageReceived);
+                            if (_webSocketClientsPool.Add(webSocketClient))
+                            { //check if clients are not full again
+                                WebSocketOpened?.Invoke(this, new WebSocketOpenedEventArgs() { EndPoint = webSocketClient.RemoteEndPoint });
+                                webSocketClient.ConnectionClosed += OnConnectionClosed;
+                            }
+                            else
+                            {
+                                webSocketClient.Dispose();
+                                return false;
+                            }
+                        }
+
+                    }
+                    else
+                    {
+                        networkStream.Close();
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                networkStream.Close();
+                return false;
+            }
 
             return true;
 

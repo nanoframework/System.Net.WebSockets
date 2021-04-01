@@ -29,13 +29,13 @@ namespace NFWebsockets.Example
             NetworkHelpers.DateTimeAvailable.WaitOne();
 
             Debug.WriteLine("All set!");
-
+            string ip = "127.0.0.1";
             //Lets create a new default webserver.
-            //WebSocketServer webSocketServer = new WebSocketServer();
-            //webSocketServer.Start();
+            WebSocketServer webSocketServer = new WebSocketServer();
+            webSocketServer.Start();
             //Let's echo all incomming messages from clients to all connected clients including the sender. 
-            //webSocketServer.MessageReceived += WebSocketServer_MesageReceived;
-            //Debug.WriteLine($"Websocket server is up and running, connect on: ws://{ip}:{webSocketServer.Port}{webSocketServer.Prefix}");
+            webSocketServer.MessageReceived += WebSocketServer_MesageReceived;
+            Debug.WriteLine($"Websocket server is up and running, connect on: ws://{ip}:{webSocketServer.Port}{webSocketServer.Prefix}");
 
             //Now let's also attach a local websocket client. Just because we can :-)
             WebSocketClient client = new WebSocketClient();
@@ -48,7 +48,8 @@ namespace NFWebsockets.Example
             // client.UseCustomCertificate = true;
 
             //connect to the local client and write the messages to the debug output
-            client.Connect("wss://echo.websocket.org");
+            //client.Connect("wss://echo.websocket.org");
+            client.Connect("ws://127.0.0.1");
             client.MessageReceived += Client_MessageReceived;
 
             int helloCounter = 0;
@@ -79,18 +80,18 @@ namespace NFWebsockets.Example
         private static void WebSocketServer_MesageReceived(object sender, MessageReceivedEventArgs e)
         {
 
-            //var webSocketServer = (WebSocketServer)sender;
-            //Byte[] buffer = new Byte[e.Frame.MessageLength];
-            //e.Frame.MessageStream.Read(buffer, 0, buffer.Length);
-            //if (e.Frame.MessageType == nanoframework.System.Net.Websockets.WebSocketFrame.WebSocketMessageType.Text)
-            //{
-            //    webSocketServer.BroadCast(Encoding.UTF8.GetString(buffer, 0, buffer.Length));
+            var webSocketServer = (WebSocketServer)sender;
 
-            //}
-            //else
-            //{
-            //    webSocketServer.BroadCast(buffer);
-            //}
+            var buffer = e.Frame.Buffer;
+            if (e.Frame.MessageType == nanoframework.System.Net.Websockets.WebSocketFrame.WebSocketMessageType.Text)
+            {
+                webSocketServer.BroadCast(Encoding.UTF8.GetString(buffer, 0, buffer.Length));
+
+            }
+            else
+            {
+                webSocketServer.BroadCast(e.Frame.Buffer);
+            }
         }
         // Identrust DST Root CA X3
         // from https://www.identrust.com/dst-root-ca-x3
