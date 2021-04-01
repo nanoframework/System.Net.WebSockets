@@ -33,7 +33,7 @@
     <Compile Include="WebSocketFrame\WebSocketState.cs" />
     <Compile Include="WebSocketHelpers.cs" />
     <Compile Include="WebSocketReceiver.cs" />
-    <Compile Include="WebSocketReceiveThread.cs" />
+    <Compile Include="ReceiveAndControllThread.cs" />
     <Compile Include="WebSocketSender.cs" />
   </ItemGroup>
   <ItemGroup>
