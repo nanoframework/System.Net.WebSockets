@@ -41,7 +41,7 @@ namespace nanoframework.System.Net.Websockets
                     }
                     else if (messageFrame.IsControllFrame)
                     {
-                        byte[] buffer = _webSocket.WebSocketReceiver.ReadBuffer(messageFrame.MessageLength);
+                        byte[] buffer = _webSocket.WebSocketReceiver.ReadBuffer(messageFrame.MessageLength, messageFrame.Masks);
 
                         _webSocket.LastContactTimeStamp = DateTime.UtcNow;
 
@@ -99,7 +99,7 @@ namespace nanoframework.System.Net.Websockets
                         }
                         else
                         {
-                            messageFrame.Buffer = _webSocket.WebSocketReceiver.ReadBuffer(messageFrame.MessageLength);
+                            messageFrame.Buffer = _webSocket.WebSocketReceiver.ReadBuffer(messageFrame.MessageLength, messageFrame.Masks);
 
                             _webSocket.LastContactTimeStamp = DateTime.UtcNow;
 

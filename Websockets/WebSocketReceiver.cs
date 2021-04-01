@@ -171,9 +171,9 @@ namespace nanoframework.System.Net.Websockets
             return messageFrame;
         }
 
-        internal byte[] ReadBuffer(int messageLength)
+        internal byte[] ReadBuffer(int messageLength, byte[] masks = null)
         {
-            return ReadFixedSizeBuffer(messageLength);
+            return ReadFixedSizeBuffer(messageLength, masks);
         }
 
         private ReceiveMessageFrame SetMessageError(ReceiveMessageFrame frame, string errorMsg, WebSocketCloseStatus closeCode)
@@ -188,7 +188,7 @@ namespace nanoframework.System.Net.Websockets
             _websocketReadErrorCallBack?.Invoke(this, new WebSocketReadEEventArgs() { Frame = frame });
         }
 
-        byte[] ReadFixedSizeBuffer(int size)
+        byte[] ReadFixedSizeBuffer(int size, byte[] masks = null)
         {
             byte[] buffer = new byte[size];
             int offset = 0;
@@ -200,7 +200,13 @@ namespace nanoframework.System.Net.Websockets
                 size -= bytes;
             }
 
-            
+            if(masks != null)
+            {
+                for(int i = 0; i < buffer.Length; i++)
+                {
+                    buffer[i] = (byte)(buffer[i] ^ masks[i % masks.Length]);
+                }
+            }
 
             return buffer;
         }
