@@ -17,6 +17,8 @@ namespace nanoframework.System.Net.Websockets
 
         public void WorkerThread() //this thread is always running and thus the best place for controlling ping and other messages
         {
+            var timeoutCheckerTimer = new Timer(CheckTimeouts, new AutoResetEvent(true), 5000, Timeout.Infinite); 
+
             while (!_webSocketClient.Stopped)
             {
                 var messageFrame = _webSocketClient.WebSocketReceiver.StartReceivingMessage();
@@ -105,31 +107,40 @@ namespace nanoframework.System.Net.Websockets
                     }
                 }
 
-                //Controlling ping and ControllerMessagesTimeout
-                if (_webSocketClient.Pinging && _webSocketClient.PingTime.Add(_webSocketClient.ServerTimeout ) < DateTime.UtcNow)
-                {
-                    _webSocketClient.RawClose(WebSocketCloseStatus.PolicyViolation, Encoding.UTF8.GetBytes("Ping timeout"), true);
-
-                    Debug.WriteLine($"{_webSocketClient.RemoteEndPoint} ping timed out");
-                }
-
-                if (_webSocketClient.State == WebSocketFrame.WebSocketState.CloseSent && _webSocketClient.ClosingTime.Add(_webSocketClient.ServerTimeout ) < DateTime.UtcNow)
-                {
-                    _webSocketClient.HardClose();
-                }
-
-                if (_webSocketClient.KeepAliveInterval != Timeout.InfiniteTimeSpan && _webSocketClient.State != WebSocketFrame.WebSocketState.CloseSent && !_webSocketClient.Pinging && _webSocketClient.LastContactTimeStamp.Add(_webSocketClient.KeepAliveInterval) < DateTime.UtcNow)
-                {
-                    _webSocketClient.SendPing();
-                }
+                
             }
 
             _webSocketClient.ReceiveStream.Close();
+            timeoutCheckerTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            timeoutCheckerTimer.Dispose();
+        }
+
+
+        private void CheckTimeouts(Object stateInfo)
+        {
+            //Controlling ping and ControllerMessagesTimeout
+            if (_webSocketClient.Pinging && _webSocketClient.PingTime.Add(_webSocketClient.ServerTimeout) < DateTime.UtcNow)
+            {
+                _webSocketClient.RawClose(WebSocketCloseStatus.PolicyViolation, Encoding.UTF8.GetBytes("Ping timeout"), true);
+
+                Debug.WriteLine($"{_webSocketClient.RemoteEndPoint} ping timed out");
+            }
+
+            if (_webSocketClient.State == WebSocketFrame.WebSocketState.CloseSent && _webSocketClient.ClosingTime.Add(_webSocketClient.ServerTimeout) < DateTime.UtcNow)
+            {
+                _webSocketClient.HardClose();
+            }
+
+            if (_webSocketClient.KeepAliveInterval != Timeout.InfiniteTimeSpan && _webSocketClient.State != WebSocketFrame.WebSocketState.CloseSent && !_webSocketClient.Pinging && _webSocketClient.LastContactTimeStamp.Add(_webSocketClient.KeepAliveInterval) < DateTime.UtcNow)
+            {
+                _webSocketClient.SendPing();
+            }
         }
 
         private void OnNewMessage(ReceiveMessageFrame message)
         {
             _webSocketClient.CallbacksMessageReceivedEventHandler?.Invoke(this, new MessageReceivedEventArgs() { Frame = message });
         }
+
     }
 }
