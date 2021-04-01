@@ -24,6 +24,8 @@ namespace nanoframework.System.Net.Websockets
         internal bool HasError = false;
 
         internal WebSocketSender _webSocketSender;
+        private readonly object _syncLock = new object();
+        internal MessageReceivedEventHandler CallbacksMessageReceivedEventHandler;
 
         //
         // Summary:
@@ -147,6 +149,11 @@ namespace nanoframework.System.Net.Websockets
             //start server sending and receiving async
             WebSocketReceiver = new WebSocketReceiver(stream, remoteEndPoint, this, IsServer, MaxReceiveFrameSize, OnReadError);
             _webSocketSender = new WebSocketSender(stream, IsServer, OnWriteError);
+
+            ReceiveAndControllThread receiveThread = new ReceiveAndControllThread(this);
+            new Thread(receiveThread.WorkerThread).Start();
+
+            State = WebSocketState.Open;
         }
 
         // Summary:
@@ -403,6 +410,49 @@ namespace nanoframework.System.Net.Websockets
             if (State != WebSocketState.Closed)
             {
                 HardClose();
+            }
+        }
+
+        public event MessageReceivedEventHandler MessageReceived
+        {
+            add
+            {
+                lock (_syncLock)
+                {
+                    MessageReceivedEventHandler callbacksOld = CallbacksMessageReceivedEventHandler;
+                    MessageReceivedEventHandler callbacksNew = (MessageReceivedEventHandler)Delegate.Combine(callbacksOld, value);
+
+                    try
+                    {
+                        CallbacksMessageReceivedEventHandler = callbacksNew;
+                    }
+                    catch
+                    {
+                        CallbacksMessageReceivedEventHandler = callbacksOld;
+
+                        throw;
+                    }
+                }
+            }
+
+            remove
+            {
+                lock (_syncLock)
+                {
+                    MessageReceivedEventHandler callbacksOld = CallbacksMessageReceivedEventHandler;
+                    MessageReceivedEventHandler callbacksNew = (MessageReceivedEventHandler)Delegate.Remove(callbacksOld, value);
+
+                    try
+                    {
+                        CallbacksMessageReceivedEventHandler = callbacksNew;
+                    }
+                    catch
+                    {
+                        CallbacksMessageReceivedEventHandler = callbacksOld;
+
+                        throw;
+                    }
+                }
             }
         }
 

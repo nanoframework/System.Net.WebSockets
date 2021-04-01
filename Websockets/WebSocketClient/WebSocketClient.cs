@@ -17,10 +17,10 @@ namespace nanoframework.System.Net.Websockets
     /// </summary>
     public class WebSocketClient : WebSocket, IDisposable
     {
-        internal MessageReceivedEventHandler CallbacksMessageReceivedEventHandler;
+
 
         private NetworkStream _networkStream;
-        private readonly object _syncLock = new object();
+        
         private X509Certificate _certificate = null;
 
         /// <summary>
@@ -72,48 +72,8 @@ namespace nanoframework.System.Net.Websockets
 
         private Socket _tcpSocket;
 
-        public event MessageReceivedEventHandler MessageReceived
-        {
-            add
-            {
-                lock (_syncLock)
-                {
-                    MessageReceivedEventHandler callbacksOld = CallbacksMessageReceivedEventHandler;
-                    MessageReceivedEventHandler callbacksNew = (MessageReceivedEventHandler)Delegate.Combine(callbacksOld, value);
 
-                    try
-                    {
-                        CallbacksMessageReceivedEventHandler = callbacksNew;
-                    }
-                    catch
-                    {
-                        CallbacksMessageReceivedEventHandler = callbacksOld;
-
-                        throw;
-                    }
-                }
-            }
-
-            remove
-            {
-                lock (_syncLock)
-                {
-                    MessageReceivedEventHandler callbacksOld = CallbacksMessageReceivedEventHandler;
-                    MessageReceivedEventHandler callbacksNew = (MessageReceivedEventHandler)Delegate.Remove(callbacksOld, value);
-
-                    try
-                    {
-                        CallbacksMessageReceivedEventHandler = callbacksNew;
-                    }
-                    catch
-                    {
-                        CallbacksMessageReceivedEventHandler = callbacksOld;
-
-                        throw;
-                    }
-                }
-            }
-        }
+        
 
         /// <summary>
         /// Creates an instance of the System.Net.WebSockets.ClientWebSocket class.
@@ -286,10 +246,7 @@ namespace nanoframework.System.Net.Websockets
 
             ConnectToStream(_networkStream, false, remoteEndPoint);
 
-            ReceiveAndControllThread receiveThread = new ReceiveAndControllThread(this);
-            new Thread(receiveThread.WorkerThread).Start();
 
-            State = WebSocketState.Open;
 
         }
 
