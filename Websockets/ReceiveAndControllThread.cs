@@ -145,7 +145,7 @@ namespace nanoframework.System.Net.Websockets
 
         private void OnNewMessage(ReceiveMessageFrame message)
         {
-            _webSocket.CallbacksMessageReceivedEventHandler?.Invoke(this, new MessageReceivedEventArgs() { Frame = message });
+            _webSocket.CallbacksMessageReceivedEventHandler?.Invoke(_webSocket, new MessageReceivedEventArgs() { Frame = message });
         }
 
     }
