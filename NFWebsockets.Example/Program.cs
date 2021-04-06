@@ -38,7 +38,7 @@ namespace NFWebSockets.Example
             Debug.WriteLine($"WebSocket server is up and running, connect on: ws://{ip}:{webSocketServer.Port}{webSocketServer.Prefix}");
 
             //Now let's also attach a local websocket client. Just because we can :-)
-            WebSocketClient client = new WebSocketClient();
+            ClientWebSocket client = new ClientWebSocket();
             
             ///////////////////////////////////////////
             // secure connection config

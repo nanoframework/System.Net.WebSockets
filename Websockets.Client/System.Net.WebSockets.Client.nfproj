@@ -51,6 +51,12 @@
   </ItemGroup>
   <Import Project="$(NanoFrameworkProjectSystemPath)NFProjectSystem.props" Condition="Exists('$(NanoFrameworkProjectSystemPath)NFProjectSystem.props')" />
   <ItemGroup>
+    <Compile Include="..\WebSockets\ClientWebSocket\ClientWebSocket.cs">
+      <Link>ClientWebSocket\ClientWebSocket.cs</Link>
+    </Compile>
+    <Compile Include="..\WebSockets\ClientWebSocket\ClientWebSocketOptions.cs">
+      <Link>ClientWebSocket\ClientWebSocketOptions.cs</Link>
+    </Compile>
     <Compile Include="..\WebSockets\MessageReceivedEventArgs.cs">
       <Link>MessageReceivedEventArgs.cs</Link>
     </Compile>
@@ -59,12 +65,6 @@
     </Compile>
     <Compile Include="..\WebSockets\WebSocket.cs">
       <Link>WebSocket.cs</Link>
-    </Compile>
-    <Compile Include="..\WebSockets\WebSocketClient\ClientWebSocketOptions.cs">
-      <Link>WebSocketClient\ClientWebSocketOptions.cs</Link>
-    </Compile>
-    <Compile Include="..\WebSockets\WebSocketClient\WebSocketClient.cs">
-      <Link>WebSocketClient\WebSocketClient.cs</Link>
     </Compile>
     <Compile Include="..\WebSockets\WebSocketFrame\FragmentationType.cs">
       <Link>WebSocketFrame\FragmentationType.cs</Link>
@@ -106,7 +106,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="..\WebSockets\key.snk"/>
+    <None Include="..\WebSockets\key.snk" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib, Version=1.10.3.0, Culture=neutral, PublicKeyToken=c07d481e9758c731">
@@ -137,7 +137,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="WebSocketFrame\" />
-    <Folder Include="WebSocketClient\" />
+    <Folder Include="ClientWebSocket\" />
   </ItemGroup>
   <Import Project="$(NanoFrameworkProjectSystemPath)NFProjectSystem.CSharp.targets" Condition="Exists('$(NanoFrameworkProjectSystemPath)NFProjectSystem.CSharp.targets')" />
   <ProjectExtensions>

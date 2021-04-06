@@ -17,9 +17,9 @@ namespace System.Net.WebSockets
     public delegate void MessageReceivedEventHandler(object sender, MessageReceivedEventArgs e);
 
     /// <summary>
-    /// Provides a client for connecting to WebSocket services..
+    /// Provides a client for connecting to WebSocket services.
     /// </summary>
-    public class WebSocketClient : WebSocket, IDisposable
+    public class ClientWebSocket : WebSocket, IDisposable
     {
         private NetworkStream _networkStream;
         
@@ -78,10 +78,10 @@ namespace System.Net.WebSockets
         public bool UseStoredDeviceCertificate { get; set; } = false;
 
         /// <summary>
-        /// Gets the WebSocket state of the <see cref="WebSocketClient"/> instance.
+        /// Gets the WebSocket state of the <see cref="ClientWebSocket"/> instance.
         /// </summary>
         /// <value>
-        /// The WebSocket state of the <see cref="WebSocketClient"/> instance.
+        /// The WebSocket state of the <see cref="ClientWebSocket"/> instance.
         /// </value>
         public override WebSocketState State { get; set; } = WebSocketState.Closed;
 
@@ -91,7 +91,7 @@ namespace System.Net.WebSockets
         /// Creates an instance of the WebSocketClient class.
         /// </summary>
         /// <param name="options">Optional <see cref="ClientWebSocketOptions"/> where extra options can be defined.</param>
-        public WebSocketClient(ClientWebSocketOptions options = null) : base(options)
+        public ClientWebSocket(ClientWebSocketOptions options = null) : base(options)
         {
             if(options != null)
             {
