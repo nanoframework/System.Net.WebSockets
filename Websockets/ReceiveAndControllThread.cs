@@ -124,33 +124,43 @@ namespace System.Net.WebSockets
         private void CheckTimeouts(object thread)
         {
             var receiveThread = (Thread)thread;
+
+#pragma warning disable S3889 // OK to use in .NET nanoFramework context
             receiveThread.Suspend();
+#pragma warning restore S3889 // Neither "Thread.Resume" nor "Thread.Suspend" should be used
+
             //Controlling ping and ControllerMessagesTimeout
-            if (_webSocket.Pinging && _webSocket.PingTime.Add(_webSocket.ServerTimeout) < DateTime.UtcNow)
+            if (_webSocket.Pinging
+                && _webSocket.PingTime.Add(_webSocket.ServerTimeout) < DateTime.UtcNow)
             {
                 _webSocket.RawClose(WebSocketCloseStatus.PolicyViolation, Encoding.UTF8.GetBytes("Ping timeout"), true);
 
                 Debug.WriteLine($"{_webSocket.RemoteEndPoint} ping timed out");
             }
 
-            if (_webSocket.State == WebSocketFrame.WebSocketState.CloseSent && _webSocket.ClosingTime.Add(_webSocket.ServerTimeout) < DateTime.UtcNow)
+            if (_webSocket.State == WebSocketFrame.WebSocketState.CloseSent
+                && _webSocket.ClosingTime.Add(_webSocket.ServerTimeout) < DateTime.UtcNow)
             {
                 _webSocket.HardClose();
             }
 
-            if (_webSocket.KeepAliveInterval != Timeout.InfiniteTimeSpan && _webSocket.State != WebSocketFrame.WebSocketState.CloseSent && !_webSocket.Pinging && _webSocket.LastContactTimeStamp.Add(_webSocket.KeepAliveInterval) < DateTime.UtcNow)
+            if (_webSocket.KeepAliveInterval != Timeout.InfiniteTimeSpan
+                && _webSocket.State != WebSocketFrame.WebSocketState.CloseSent
+                && !_webSocket.Pinging
+                && _webSocket.LastContactTimeStamp.Add(_webSocket.KeepAliveInterval) < DateTime.UtcNow)
             {
                 _webSocket.SendPing();
             }
 
+#pragma warning disable S3889 // OK to use in .NET nanoFramework context
             receiveThread.Resume();
-            
+#pragma warning restore S3889 // Neither "Thread.Resume" nor "Thread.Suspend" should be used
+
         }
 
         private void OnNewMessage(ReceiveMessageFrame message)
         {
             _webSocket.CallbacksMessageReceivedEventHandler?.Invoke(_webSocket, new MessageReceivedEventArgs() { Frame = message });
         }
-
     }
 }
