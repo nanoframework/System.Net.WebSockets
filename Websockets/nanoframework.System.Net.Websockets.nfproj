@@ -35,6 +35,10 @@
     <Compile Include="WebSocketReceiver.cs" />
     <Compile Include="ReceiveAndControllThread.cs" />
     <Compile Include="WebSocketSender.cs" />
+    <Compile Include="WebSocketServer\WebSocketClientsPool.cs" />
+    <Compile Include="WebSocketServer\WebSocketServer.cs" />
+    <Compile Include="WebSocketServer\WebSocketServerClient.cs" />
+    <Compile Include="WebSocketServer\WebSocketServerOptions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -68,9 +72,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="WebSocketServer\" />
   </ItemGroup>
   <Import Project="$(NanoFrameworkProjectSystemPath)NFProjectSystem.CSharp.targets" Condition="Exists('$(NanoFrameworkProjectSystemPath)NFProjectSystem.CSharp.targets')" />
   <ProjectExtensions>

@@ -3,8 +3,9 @@ using System.Net;
 
 namespace nanoframework.System.Net.Websockets
 {
-    // Summary:
-    //     The base WebSocket Message frame.
+    /// <summary>
+    /// The base WebSocket Message frame.
+    /// </summary>
     public class MessageFrame
     {
 
@@ -13,17 +14,14 @@ namespace nanoframework.System.Net.Websockets
         internal bool Error { get => ErrorMessage != null; }
         internal string ErrorMessage { get; set; } = null;
 
-        // Summary:
-        //     The Remote Endpoint from which the message is received.
+        /// <summary>
+        /// The Remote Endpoint from which the message is received.
+        /// </summary>
         public IPEndPoint EndPoint { get; set; }
 
-        //
-        // Summary:
-        //     Indicates whether the current message is a UTF-8 message or a binary message.
-        //
-        // Returns:
-        //     Returns System.Net.WebSockets.WebSocketMessageType.
+        /// <summary>
+        /// Indicates whether the current message is a UTF-8 message or a binary message.
+        /// </summary>
         public WebSocketMessageType MessageType => OpCode == OpCode.TextFrame ? WebSocketMessageType.Text : WebSocketMessageType.Binary;
-
     }
 }

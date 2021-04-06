@@ -3,29 +3,29 @@ using System.Text;
 
 namespace nanoframework.System.Net.Websockets
 {
-    //
-    // Summary:
-    //     Indicates the message Fragmentation Type.
+    /// <summary>
+    /// Indicates the message Fragmentation Type.
+    /// </summary>
     public enum FragmentationType
     {
-        //
-        // Summary:
-        //     The message is not fragmented.
+        /// <summary>
+        /// The message is not fragmented.
+        /// </summary>
         NotFragmented,
 
-        //
-        // Summary:
-        //     Message Frame contains the first fragment of a fragmented message.
+        /// <summary>
+        /// Message Frame contains the first fragment of a fragmented message.
+        /// </summary>
         FirstFragment,
 
-        //
-        // Summary:
-        //     Message Frame contains a next fragment of the message.
+        /// <summary>
+        /// Message Frame contains a next fragment of the message.
+        /// </summary>
         Fragment,
 
-        //
-        // Summary:
-        //     Message frame contains the last fragment of the message.
+        /// <summary>
+        /// Message frame contains the last fragment of the message. 
+        /// </summary>
         FinalFragment
     }
 }

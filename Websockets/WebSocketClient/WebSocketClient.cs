@@ -13,12 +13,10 @@ namespace nanoframework.System.Net.Websockets
     public delegate void MessageReceivedEventHandler(object sender, MessageReceivedEventArgs e);
 
     /// <summary>
-    /// The WebSocketClient can connect to a WebSocket Server.
+    /// Provides a client for connecting to WebSocket services..
     /// </summary>
     public class WebSocketClient : WebSocket, IDisposable
     {
-
-
         private NetworkStream _networkStream;
         
         private X509Certificate _certificate = null;
@@ -33,6 +31,12 @@ namespace nanoframework.System.Net.Websockets
         /// </summary>
         public int Port { get; private set; }
 
+        /// <summary>
+        /// Gets or sets the TLS/SSL protocol used by the <see cref="WebSocket"/> class.
+        /// </summary>
+        /// <value>
+        /// One of the values defined in the <see cref="SslProtocols"/> enumeration.
+        /// </value>
         public SslProtocols SslProtocol { get; private set; } = SslProtocols.Tls12;
 
         /// <summary>
@@ -48,7 +52,8 @@ namespace nanoframework.System.Net.Websockets
         public string Prefix { get; private set; }
 
         /// <summary>
-        /// The type of SslVerification to use.
+        /// Option for SSL verification.
+        /// The default behavior is <see cref="SslVerification.CertificateRequired"/>.
         /// </summary>
         public SslVerification SslVerification { get; set; } = SslVerification.CertificateRequired;
 
@@ -68,17 +73,20 @@ namespace nanoframework.System.Net.Websockets
         /// </summary>
         public bool UseStoredDeviceCertificate { get; set; } = false;
 
+        /// <summary>
+        /// Gets the WebSocket state of the <see cref="WebSocketClient"/> instance.
+        /// </summary>
+        /// <value>
+        /// The WebSocket state of the <see cref="WebSocketClient"/> instance.
+        /// </value>
         public override WebSocketState State { get; set; } = WebSocketState.Closed;
 
         private Socket _tcpSocket;
 
-
-        
-
         /// <summary>
-        /// Creates an instance of the System.Net.WebSockets.ClientWebSocket class.
+        /// Creates an instance of the WebSocketClient class.
         /// </summary>
-        /// <param name="options">Optional ClientWebSocketOptions where extra options can be defined.</param>
+        /// <param name="options">Optional <see cref="ClientWebSocketOptions"/> where extra options can be defined.</param>
         public WebSocketClient(ClientWebSocketOptions options = null) : base(options)
         {
             if(options != null)

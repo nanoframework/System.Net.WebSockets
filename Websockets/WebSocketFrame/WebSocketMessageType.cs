@@ -1,18 +1,18 @@
 ﻿namespace nanoframework.System.Net.Websockets.WebSocketFrame
 {
-    //
-    // Summary:
-    //     Indicates the message type.
+    /// <summary>
+    /// Indicates the message type.
+    /// </summary>
     public enum WebSocketMessageType
     {
-        //
-        // Summary:
-        //     The message is clear text.
+        /// <summary>
+        /// The message is clear text.
+        /// </summary>
         Text = 0,
-        //
-        // Summary:
-        //     The message is in binary format.
-        Binary = 1,
 
+        /// <summary>
+        /// The message is in binary format.
+        /// </summary>
+        Binary = 1,
     }
 }

@@ -3,38 +3,43 @@ using System.Text;
 
 namespace nanoframework.System.Net.Websockets.WebSocketFrame
 {
-    //
-    // Summary:
-    //     Defines the different states a WebSockets instance can be in.
+    /// <summary>
+    /// Defines the different states a WebSockets instance can be in.
+    /// </summary>
     public enum WebSocketState
     {
-        //
-        // Summary:
-        //     Reserved for future use.
+        /// <summary>
+        /// Reserved for future use.
+        /// </summary>
         None = 0,
-        //
-        // Summary:
-        //     The connection is negotiating the handshake with the remote endpoint.
+
+        /// <summary>
+        /// The connection is negotiating the handshake with the remote endpoint.
+        /// </summary>
         Connecting = 1,
-        //
-        // Summary:
-        //     The initial state after the HTTP handshake has been completed.
+
+        /// <summary>
+        /// The initial state after the HTTP handshake has been completed.
+        /// </summary>
         Open = 2,
-        //
-        // Summary:
-        //     A close message was sent to the remote endpoint.
+
+        /// <summary>
+        /// A close message was sent to the remote endpoint.
         CloseSent = 3,
-        //
-        // Summary:
-        //     A close message was received from the remote endpoint.
+
+        /// <summary>
+        /// A close message was received from the remote endpoint.
+        /// </summary>
         CloseReceived = 4,
-        //
-        // Summary:
-        //     Indicates the WebSocket close handshake completed gracefully.
+
+        /// <summary>
+        /// Indicates the WebSocket close handshake completed gracefully.
+        /// </summary>
         Closed = 5,
-        //
-        // Summary:
-        //     Reserved for future use.
+
+        /// <summary>
+        /// Reserved for future use.
+        /// </summary>
         Aborted = 6
     }
 }

@@ -8,35 +8,29 @@ namespace nanoframework.System.Net.Websockets
 {
     public class ClientWebSocketOptions : WebSocketOptions
     {
-        
-        //// Summary:
-        ////     Adds a sub-protocol to be negotiated during the WebSocket connection handshake.
-        ////
-        //// Parameters:
-        ////   subProtocol:
-        ////     The WebSocket sub-protocol to add.
-        //public void AddSubProtocol(string subProtocol);
+        /// <summary>
+        /// Gets or sets the TLS/SSL protocol used by the <see cref="WebSocket"/> class.
+        /// </summary>
+        /// <value>
+        /// One of the values defined in the <see cref="SslProtocols"/> enumeration.
+        /// </value>
+        /// <remarks>
+        /// This property is specific to nanoFramework. There is no equivalent in the .NET API.
+        /// </remarks>
         public SslProtocols SslProtocol { get; set; }
 
-        //// Summary:
-        ////     Gets or sets the form of SSL verification that is to performed 
-        ////
-        //// Returns:
-        ////     the form of SSL verification that is to performed.
+        /// <summary>
+        /// Option for SSL verification.
+        /// The default behavior is <see cref="SslVerification.NoVerification"/>.
+        /// </summary>
         public SslVerification SslVerification { get; set; } = SslVerification.NoVerification;
-        
-        //// Summary:
-        ////     Gets or sets a collection of client side certificate. This certificate will automatically be used when connecting to a wss:// server 
-        ////
-        //// Returns:
-        ////     the client side certificate.
-        public X509Certificate Certificate { get; set; } = null;
 
-        //// Summary:
-        ////     Gets if a custom certificate is used when connecting to a secure server 
-        ////
-        //// Returns:
-        ////     if a custom certificate is used when connecting to a secure server.
-        public bool UseCustomCertificate => Certificate != null;
+        /// <summary>
+        /// Gets or sets a collection of client side certificate. This certificate will automatically be used when connecting to a wss:// server 
+        /// </summary>
+        /// <value>
+        /// The client side certificate.
+        /// </value>
+        public X509Certificate Certificate { get; set; } = null;
     }
 }

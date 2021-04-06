@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace nanoframework.System.Net.Websockets
 {
-    public class WebSocketSender
+    internal class WebSocketSender
     {
         private readonly bool _isServer;
         private readonly NetworkStream _outputStream;

@@ -7,7 +7,7 @@ using System.Text;
 
 namespace nanoframework.System.Net.Websockets.Server
 {
-    public class WebSocketClientsPool
+    internal class WebSocketClientsPool
     {
         private Hashtable _webSocketClients;
         public int Max { get; private set; }

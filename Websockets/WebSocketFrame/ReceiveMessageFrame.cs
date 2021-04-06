@@ -2,28 +2,33 @@
 
 namespace nanoframework.System.Net.Websockets
 {
-    // Summary:
-    //     The Receive Message Frame
+    /// <summary>
+    /// The Receive Message Frame
+    /// </summary>
     public class ReceiveMessageFrame : MessageFrame
     {
         internal bool IsMasked { get; set; } = false;
+        internal byte[] Masks { get; set; } = new byte[4];
+        internal WebSocketCloseStatus CloseStatus { get; set; } = WebSocketCloseStatus.Empty;
 
-        // Summary:
-        //     Indicates if the message is fragmented. And what fragment is received. 
+        /// <summary>
+        /// Indicates if the message is fragmented. And what fragment is received. 
+        /// </summary>
         public FragmentationType Fragmentation { get; set; }
 
-        // Summary:
-        //     Indicates if the message is fragmented.
+        /// <summary>
+        /// Indicates if the message is fragmented.
+        /// </summary>
         public bool IsFragmented { get => Fragmentation != FragmentationType.NotFragmented; }
-        
-        // Summary:
-        //     The content length of the message in number of bytes.
+
+        /// <summary>
+        /// The content length of the message in number of bytes.
+        /// </summary>
         public int MessageLength { get; set; }
-        
-        internal byte[] Masks { get; set; } = new byte[4];
 
+        /// <summary>
+        /// Buffer holding the message content.
+        /// </summary>
         public byte[] Buffer { get; set; }
-
-        internal WebSocketCloseStatus CloseStatus { get; set; } = WebSocketCloseStatus.Empty;
     }
 }

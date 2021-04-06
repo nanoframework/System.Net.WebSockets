@@ -16,12 +16,10 @@ namespace nanoframework.System.Net.Websockets.Server
             
         }
 
-
         internal void ConnectToStream(NetworkStream stream, IPEndPoint remoteEndPoint, MessageReceivedEventHandler messageReceivedHandler)
         {
             ConnectToStream(stream, true, remoteEndPoint);
             base.MessageReceived += messageReceivedHandler;
         }
-
     }
 }

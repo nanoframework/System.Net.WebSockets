@@ -48,8 +48,8 @@ namespace NFWebsockets.Example
             // client.UseCustomCertificate = true;
 
             //connect to the local client and write the messages to the debug output
-            //client.Connect("wss://echo.websocket.org");
-            client.Connect("ws://127.0.0.1");
+            client.Connect("wss://echo.websocket.org");
+            //client.Connect("ws://127.0.0.1");
             client.MessageReceived += Client_MessageReceived;
 
             int helloCounter = 0;
