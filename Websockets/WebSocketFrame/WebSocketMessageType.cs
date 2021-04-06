@@ -3,7 +3,7 @@
 // See LICENSE file in the project root for full license information.
 //
 
-namespace nanoframework.System.Net.Websockets.WebSocketFrame
+namespace System.Net.WebSockets.WebSocketFrame
 {
     /// <summary>
     /// Indicates the message type.

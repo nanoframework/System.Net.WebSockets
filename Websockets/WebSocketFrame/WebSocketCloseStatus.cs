@@ -3,7 +3,7 @@
 // See LICENSE file in the project root for full license information.
 //
 
-namespace nanoframework.System.Net.Websockets.WebSocketFrame
+namespace System.Net.WebSockets.WebSocketFrame
 {
     /// <summary>
     /// Represents well known WebSocket close codes as defined in section 11.7 of the WebSocket protocol spec.

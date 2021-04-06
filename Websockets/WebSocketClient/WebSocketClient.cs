@@ -3,7 +3,7 @@
 // See LICENSE file in the project root for full license information.
 //
 
-using nanoframework.System.Net.Websockets.WebSocketFrame;
+using System.Net.WebSockets.WebSocketFrame;
 using System;
 using System.Diagnostics;
 using System.Net;
@@ -12,7 +12,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
-namespace nanoframework.System.Net.Websockets
+namespace System.Net.WebSockets
 {
     public delegate void MessageReceivedEventHandler(object sender, MessageReceivedEventArgs e);
 
@@ -241,7 +241,7 @@ namespace nanoframework.System.Net.Websockets
 
                         if (((string)headers["connection"]).ToLower() == "upgrade" && ((string)headers["upgrade"]).ToLower() == "websocket" && (string)headers["sec-websocket-accept"] == swkaSha1Base64)
                         {
-                            Debug.WriteLine("Websocket Client connected");
+                            Debug.WriteLine("WebSocket Client connected");
                             correctHandshake = true;
                         }
                     }
@@ -253,7 +253,7 @@ namespace nanoframework.System.Net.Websockets
                 State = WebSocketFrame.WebSocketState.Closed;
                 _tcpSocket.Close();
 
-                throw new Exception("Websocket did not receive right handshake");
+                throw new Exception("WebSocket did not receive right handshake");
             }
 
             ConnectToStream(_networkStream, false, remoteEndPoint);

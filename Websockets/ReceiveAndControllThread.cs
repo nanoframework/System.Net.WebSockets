@@ -3,13 +3,12 @@
 // See LICENSE file in the project root for full license information.
 //
 
-using nanoframework.System.Net.Websockets.WebSocketFrame;
-using System;
 using System.Diagnostics;
+using System.Net.WebSockets.WebSocketFrame;
 using System.Text;
 using System.Threading;
 
-namespace nanoframework.System.Net.Websockets
+namespace System.Net.WebSockets
 {
     internal class ReceiveAndControllThread
     {

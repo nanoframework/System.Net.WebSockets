@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace nanoframework.System.Net.Websockets
+namespace System.Net.WebSockets
 {
     internal class WebSocketSender
     {

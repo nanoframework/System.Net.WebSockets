@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31105.61
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{11A8DD76-328B-46DF-9F39-F559912D0360}") = "nanoframework.System.Net.Websockets", "Websockets\nanoframework.System.Net.Websockets.nfproj", "{71C3E5DB-C987-4C95-B6E0-9EE588241A6B}"
+Project("{11A8DD76-328B-46DF-9F39-F559912D0360}") = "System.Net.WebSockets", "Websockets\System.Net.WebSockets.nfproj", "{71C3E5DB-C987-4C95-B6E0-9EE588241A6B}"
 EndProject
-Project("{11A8DD76-328B-46DF-9F39-F559912D0360}") = "nanoframework.System.Net.Websockets.Server", "Websockets.Server\nanoframework.System.Net.Websockets.Server.nfproj", "{08847152-FAEB-41A8-BF85-BD8FC1C39C93}"
+Project("{11A8DD76-328B-46DF-9F39-F559912D0360}") = "System.Net.WebSockets.Server", "Websockets.Server\System.Net.WebSockets.Server.nfproj", "{08847152-FAEB-41A8-BF85-BD8FC1C39C93}"
 EndProject
-Project("{11A8DD76-328B-46DF-9F39-F559912D0360}") = "nanoframework.System.Net.Websockets.Client", "Websockets.Client\nanoframework.System.Net.Websockets.Client.nfproj", "{EF3A6935-1A5F-4AE8-A866-562AF5803205}"
+Project("{11A8DD76-328B-46DF-9F39-F559912D0360}") = "System.Net.WebSockets.Client", "Websockets.Client\System.Net.WebSockets.Client.nfproj", "{EF3A6935-1A5F-4AE8-A866-562AF5803205}"
 EndProject
-Project("{11A8DD76-328B-46DF-9F39-F559912D0360}") = "NFWebsockets.Example", "NFWebsockets.Example\NFWebsockets.Example.nfproj", "{1EF92D27-FFC7-40A1-BEEA-E695784B222A}"
+Project("{11A8DD76-328B-46DF-9F39-F559912D0360}") = "NFWebSockets.Example", "NFWebsockets.Example\NFWebSockets.Example.nfproj", "{1EF92D27-FFC7-40A1-BEEA-E695784B222A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4F4D1647-D756-415A-9136-F3813DFA4E28}"
 	ProjectSection(SolutionItems) = preProject

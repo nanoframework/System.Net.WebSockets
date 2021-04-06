@@ -6,7 +6,7 @@
 using System.Collections;
 using System.Text;
 
-namespace nanoframework.System.Net.Websockets
+namespace System.Net.WebSockets
 {
     internal static class WebSocketHelpers
     {

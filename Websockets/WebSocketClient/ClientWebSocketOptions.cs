@@ -3,11 +3,11 @@
 // See LICENSE file in the project root for full license information.
 //
 
-using nanoframework.System.Net.Websockets.WebSocketFrame;
+using System.Net.WebSockets.WebSocketFrame;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 
-namespace nanoframework.System.Net.Websockets
+namespace System.Net.WebSockets
 {
     public class ClientWebSocketOptions : WebSocketOptions
     {

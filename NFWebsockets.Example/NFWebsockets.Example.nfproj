@@ -48,9 +48,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Websockets.Client\nanoframework.System.Net.Websockets.Client.nfproj" />
-    <ProjectReference Include="..\Websockets.Server\nanoframework.System.Net.Websockets.Server.nfproj" />
-    <ProjectReference Include="..\Websockets\nanoframework.System.Net.Websockets.nfproj" />
+    <ProjectReference Include="..\Websockets\System.Net.WebSockets.nfproj" />
   </ItemGroup>
   <Import Project="$(NanoFrameworkProjectSystemPath)NFProjectSystem.CSharp.targets" Condition="Exists('$(NanoFrameworkProjectSystemPath)NFProjectSystem.CSharp.targets')" />
   <ProjectExtensions>

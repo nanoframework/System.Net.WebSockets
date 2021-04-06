@@ -5,7 +5,7 @@
 
 using System.Collections;
 
-namespace nanoframework.System.Net.Websockets.Server
+namespace System.Net.WebSockets.Server
 {
     internal class WebSocketClientsPool
     {

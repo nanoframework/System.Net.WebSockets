@@ -4,9 +4,9 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("nanoframework.System.Net.Websockets.Server")]
+[assembly: AssemblyTitle("System.Net.WebSockets.Server")]
 [assembly: AssemblyCompany("nanoFramework Contributors")]
-[assembly: AssemblyProduct(".NET nanoframework System.Net.Websockets Server")]
+[assembly: AssemblyProduct(".NET nanoframework System.Net.WebSockets Server")]
 [assembly: AssemblyCopyright("Copyright (c) .NET Foundation and Contributors")]
 
 //////////////////////////////////////////////////////

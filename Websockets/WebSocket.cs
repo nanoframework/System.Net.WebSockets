@@ -3,7 +3,7 @@
 // See LICENSE file in the project root for full license information.
 //
 
-using nanoframework.System.Net.Websockets.WebSocketFrame;
+using System.Net.WebSockets.WebSocketFrame;
 using System;
 using System.Diagnostics;
 using System.Net;
@@ -11,7 +11,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace nanoframework.System.Net.Websockets
+namespace System.Net.WebSockets
 {
     /// <summary>
     /// The WebSocket class allows applications to send and receive data after the WebSocket upgrade has completed.

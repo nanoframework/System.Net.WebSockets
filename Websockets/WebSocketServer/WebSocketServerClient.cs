@@ -3,11 +3,11 @@
 // See LICENSE file in the project root for full license information.
 //
 
-using nanoframework.System.Net.Websockets.WebSocketFrame;
+using System.Net.WebSockets.WebSocketFrame;
 using System.Net;
 using System.Net.Sockets;
 
-namespace nanoframework.System.Net.Websockets.Server
+namespace System.Net.WebSockets.Server
 {
     internal class WebSocketServerClient : WebSocket
     {

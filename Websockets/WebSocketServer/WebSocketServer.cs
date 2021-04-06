@@ -3,7 +3,7 @@
 // See LICENSE file in the project root for full license information.
 //
 
-using nanoframework.System.Net.Websockets.WebSocketFrame;
+using System.Net.WebSockets.WebSocketFrame;
 using System;
 using System.Diagnostics;
 using System.Net;
@@ -11,7 +11,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace nanoframework.System.Net.Websockets.Server
+namespace System.Net.WebSockets.Server
 {
     //
     /// <summary>
@@ -319,7 +319,7 @@ namespace nanoframework.System.Net.Websockets.Server
             Debug.WriteLine("websocket server halted!");
         }
 
-        private bool HandleTcpWebSocketRequest(Socket networkSocket, string prefix = "/", string serverName = "NFWebsocketServer") 
+        private bool HandleTcpWebSocketRequest(Socket networkSocket, string prefix = "/", string serverName = "NFWebSocketServer") 
         {
 
             NetworkStream networkStream = new NetworkStream(networkSocket);
@@ -343,7 +343,7 @@ namespace nanoframework.System.Net.Websockets.Server
                         {
                             if (_webSocketClientsPool.Count >= _webSocketClientsPool.Max)
                             {
-                                byte[] serverFullResponse = Encoding.UTF8.GetBytes($"HTTP/1.1 503 Websocket Server is full\r\n\r\n");
+                                byte[] serverFullResponse = Encoding.UTF8.GetBytes($"HTTP/1.1 503 WebSocket Server is full\r\n\r\n");
                                 networkStream.Write(serverFullResponse, 0, serverFullResponse.Length);
                                 return false;
                             }

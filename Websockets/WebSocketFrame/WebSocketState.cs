@@ -3,7 +3,7 @@
 // See LICENSE file in the project root for full license information.
 //
 
-namespace nanoframework.System.Net.Websockets.WebSocketFrame
+namespace System.Net.WebSockets.WebSocketFrame
 {
     /// <summary>
     /// Defines the different states a WebSockets instance can be in.

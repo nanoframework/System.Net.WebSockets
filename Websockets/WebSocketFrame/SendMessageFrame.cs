@@ -3,7 +3,7 @@
 // See LICENSE file in the project root for full license information.
 //
 
-namespace nanoframework.System.Net.Websockets
+namespace System.Net.WebSockets
 {
     internal class SendMessageFrame : MessageFrame
     {

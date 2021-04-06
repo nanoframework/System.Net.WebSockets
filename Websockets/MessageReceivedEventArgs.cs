@@ -5,7 +5,7 @@
 
 using System;
 
-namespace nanoframework.System.Net.Websockets
+namespace System.Net.WebSockets
 {
     /// <summary>
     /// Provides data for the MessageReceived event.

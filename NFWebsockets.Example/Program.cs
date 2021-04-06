@@ -1,5 +1,5 @@
-using nanoframework.System.Net.Websockets;
-using nanoframework.System.Net.Websockets.Server;
+using System.Net.WebSockets;
+using System.Net.WebSockets.Server;
 using nanoFramework.Networking;
 using System;
 using System.Collections;
@@ -9,7 +9,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 
-namespace NFWebsockets.Example
+namespace NFWebSockets.Example
 {
 
 
@@ -35,7 +35,7 @@ namespace NFWebsockets.Example
             webSocketServer.Start();
             //Let's echo all incomming messages from clients to all connected clients including the sender. 
             webSocketServer.MessageReceived += WebSocketServer_MesageReceived;
-            Debug.WriteLine($"Websocket server is up and running, connect on: ws://{ip}:{webSocketServer.Port}{webSocketServer.Prefix}");
+            Debug.WriteLine($"WebSocket server is up and running, connect on: ws://{ip}:{webSocketServer.Port}{webSocketServer.Prefix}");
 
             //Now let's also attach a local websocket client. Just because we can :-)
             WebSocketClient client = new WebSocketClient();
@@ -55,7 +55,7 @@ namespace NFWebsockets.Example
             int helloCounter = 0;
 
             //While the client is connected will send a friendly hello every second.
-            while (client.State == nanoframework.System.Net.Websockets.WebSocketFrame.WebSocketState.Open)
+            while (client.State == System.Net.WebSockets.WebSocketFrame.WebSocketState.Open)
             {
                 client.SendString($"hello {helloCounter++}");
 
@@ -67,7 +67,7 @@ namespace NFWebsockets.Example
 
         private static void Client_MessageReceived(object sender, MessageReceivedEventArgs e)
         {
-            if (e.Frame.MessageType == nanoframework.System.Net.Websockets.WebSocketFrame.WebSocketMessageType.Text)
+            if (e.Frame.MessageType == System.Net.WebSockets.WebSocketFrame.WebSocketMessageType.Text)
             {
                 Debug.WriteLine($"websocket message: {Encoding.UTF8.GetString(e.Frame.Buffer, 0, e.Frame.Buffer.Length)}");
             }
@@ -83,7 +83,7 @@ namespace NFWebsockets.Example
             var webSocketServer = (WebSocketServer)sender;
 
             var buffer = e.Frame.Buffer;
-            if (e.Frame.MessageType == nanoframework.System.Net.Websockets.WebSocketFrame.WebSocketMessageType.Text)
+            if (e.Frame.MessageType == System.Net.WebSockets.WebSocketFrame.WebSocketMessageType.Text)
             {
                 webSocketServer.BroadCast(Encoding.UTF8.GetString(buffer, 0, buffer.Length));
 

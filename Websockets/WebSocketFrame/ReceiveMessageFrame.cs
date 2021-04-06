@@ -3,9 +3,9 @@
 // See LICENSE file in the project root for full license information.
 //
 
-using nanoframework.System.Net.Websockets.WebSocketFrame;
+using System.Net.WebSockets.WebSocketFrame;
 
-namespace nanoframework.System.Net.Websockets
+namespace System.Net.WebSockets
 {
     /// <summary>
     /// The Receive Message Frame

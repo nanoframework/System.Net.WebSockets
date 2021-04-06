@@ -5,7 +5,7 @@
 
 using System;
 
-namespace nanoframework.System.Net.Websockets.WebSocketFrame
+namespace System.Net.WebSockets.WebSocketFrame
 {
     /// <summary>
     /// Options to use with a ClientWebSocket object.
