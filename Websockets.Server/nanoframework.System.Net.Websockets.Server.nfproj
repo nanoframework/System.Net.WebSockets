@@ -18,6 +18,63 @@
   </PropertyGroup>
   <Import Project="$(NanoFrameworkProjectSystemPath)NFProjectSystem.props" Condition="Exists('$(NanoFrameworkProjectSystemPath)NFProjectSystem.props')" />
   <ItemGroup>
+    <Compile Include="..\Websockets\MessageReceivedEventArgs.cs">
+      <Link>MessageReceivedEventArgs.cs</Link>
+    </Compile>
+    <Compile Include="..\Websockets\ReceiveAndControllThread.cs">
+      <Link>ReceiveAndControllThread.cs</Link>
+    </Compile>
+    <Compile Include="..\Websockets\WebSocket.cs">
+      <Link>WebSocket.cs</Link>
+    </Compile>
+    <Compile Include="..\Websockets\WebSocketFrame\FragmentationType.cs">
+      <Link>WebSocketFrame\FragmentationType.cs</Link>
+    </Compile>
+    <Compile Include="..\Websockets\WebSocketFrame\MessageFrame.cs">
+      <Link>WebSocketFrame\MessageFrame.cs</Link>
+    </Compile>
+    <Compile Include="..\Websockets\WebSocketFrame\OpCode.cs">
+      <Link>WebSocketFrame\OpCode.cs</Link>
+    </Compile>
+    <Compile Include="..\Websockets\WebSocketFrame\ReceiveMessageFrame.cs">
+      <Link>WebSocketFrame\ReceiveMessageFrame.cs</Link>
+    </Compile>
+    <Compile Include="..\Websockets\WebSocketFrame\SendMessageFrame.cs">
+      <Link>WebSocketFrame\SendMessageFrame.cs</Link>
+    </Compile>
+    <Compile Include="..\Websockets\WebSocketFrame\WebSocketCloseStatus.cs">
+      <Link>WebSocketFrame\WebSocketCloseStatus.cs</Link>
+    </Compile>
+    <Compile Include="..\Websockets\WebSocketFrame\WebSocketMessageType.cs">
+      <Link>WebSocketFrame\WebSocketMessageType.cs</Link>
+    </Compile>
+    <Compile Include="..\Websockets\WebSocketFrame\WebSocketOptions.cs">
+      <Link>WebSocketFrame\WebSocketOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\Websockets\WebSocketFrame\WebSocketState.cs">
+      <Link>WebSocketFrame\WebSocketState.cs</Link>
+    </Compile>
+    <Compile Include="..\Websockets\WebSocketHelpers.cs">
+      <Link>WebSocketHelpers.cs</Link>
+    </Compile>
+    <Compile Include="..\Websockets\WebSocketReceiver.cs">
+      <Link>WebSocketReceiver.cs</Link>
+    </Compile>
+    <Compile Include="..\Websockets\WebSocketSender.cs">
+      <Link>WebSocketSender.cs</Link>
+    </Compile>
+    <Compile Include="..\Websockets\WebSocketServer\WebSocketClientsPool.cs">
+      <Link>WebSocketServer\WebSocketClientsPool.cs</Link>
+    </Compile>
+    <Compile Include="..\Websockets\WebSocketServer\WebSocketServer.cs">
+      <Link>WebSocketServer\WebSocketServer.cs</Link>
+    </Compile>
+    <Compile Include="..\Websockets\WebSocketServer\WebSocketServerClient.cs">
+      <Link>WebSocketServer\WebSocketServerClient.cs</Link>
+    </Compile>
+    <Compile Include="..\Websockets\WebSocketServer\WebSocketServerOptions.cs">
+      <Link>WebSocketServer\WebSocketServerOptions.cs</Link>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -49,6 +106,10 @@
       <Private>True</Private>
       <SpecificVersion>True</SpecificVersion>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="WebSocketFrame\" />
+    <Folder Include="WebSocketServer\" />
   </ItemGroup>
   <Import Project="$(NanoFrameworkProjectSystemPath)NFProjectSystem.CSharp.targets" Condition="Exists('$(NanoFrameworkProjectSystemPath)NFProjectSystem.CSharp.targets')" />
   <ProjectExtensions>
