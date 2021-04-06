@@ -3,9 +3,8 @@
 // See LICENSE file in the project root for full license information.
 //
 
-using System.Net.WebSockets.WebSocketFrame;
-using System.Net;
 using System.Net.Sockets;
+using System.Net.WebSockets.WebSocketFrame;
 
 namespace System.Net.WebSockets.Server
 {
