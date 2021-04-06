@@ -425,15 +425,4 @@ namespace nanoframework.System.Net.Websockets
         }
 
     }
-
-    /// <summary>
-    /// Provides data for the MessageReceived event.
-    /// </summary>
-    public class MessageReceivedEventArgs : EventArgs
-    {
-        /// <summary>
-        /// The message frame received by the WebSocket. 
-        /// </summary>
-        public ReceiveMessageFrame Frame { get; set; }
-    }
 }
