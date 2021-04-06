@@ -33,7 +33,7 @@ steps:
 # build steps only
 - template: azure-pipelines-templates/class-lib-build-only.yml@templates  
   parameters:
-    sonarCloudProject: 'nanoframework_lib-nanoFramework.System.Net.WebSockets'
+    sonarCloudProject: 'nanoframework_nanoframework.System.Net.WebSockets'
 
 # package steps
 - template: azure-pipelines-templates/class-lib-package.yml@templates  
