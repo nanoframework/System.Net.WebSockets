@@ -12,67 +12,67 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <FileAlignment>512</FileAlignment>
-    <RootNamespace>nanoframework.System.Net.Websockets.Server</RootNamespace>
-    <AssemblyName>nanoframework.System.Net.Websockets.Server</AssemblyName>
+    <RootNamespace>nanoframework.System.Net.WebSockets.Server</RootNamespace>
+    <AssemblyName>nanoframework.System.Net.WebSockets.Server</AssemblyName>
     <TargetFrameworkVersion>v1.0</TargetFrameworkVersion>
   </PropertyGroup>
   <Import Project="$(NanoFrameworkProjectSystemPath)NFProjectSystem.props" Condition="Exists('$(NanoFrameworkProjectSystemPath)NFProjectSystem.props')" />
   <ItemGroup>
-    <Compile Include="..\Websockets\MessageReceivedEventArgs.cs">
+    <Compile Include="..\WebSockets\MessageReceivedEventArgs.cs">
       <Link>MessageReceivedEventArgs.cs</Link>
     </Compile>
-    <Compile Include="..\Websockets\ReceiveAndControllThread.cs">
+    <Compile Include="..\WebSockets\ReceiveAndControllThread.cs">
       <Link>ReceiveAndControllThread.cs</Link>
     </Compile>
-    <Compile Include="..\Websockets\WebSocket.cs">
+    <Compile Include="..\WebSockets\WebSocket.cs">
       <Link>WebSocket.cs</Link>
     </Compile>
-    <Compile Include="..\Websockets\WebSocketFrame\FragmentationType.cs">
+    <Compile Include="..\WebSockets\WebSocketFrame\FragmentationType.cs">
       <Link>WebSocketFrame\FragmentationType.cs</Link>
     </Compile>
-    <Compile Include="..\Websockets\WebSocketFrame\MessageFrame.cs">
+    <Compile Include="..\WebSockets\WebSocketFrame\MessageFrame.cs">
       <Link>WebSocketFrame\MessageFrame.cs</Link>
     </Compile>
-    <Compile Include="..\Websockets\WebSocketFrame\OpCode.cs">
+    <Compile Include="..\WebSockets\WebSocketFrame\OpCode.cs">
       <Link>WebSocketFrame\OpCode.cs</Link>
     </Compile>
-    <Compile Include="..\Websockets\WebSocketFrame\ReceiveMessageFrame.cs">
+    <Compile Include="..\WebSockets\WebSocketFrame\ReceiveMessageFrame.cs">
       <Link>WebSocketFrame\ReceiveMessageFrame.cs</Link>
     </Compile>
-    <Compile Include="..\Websockets\WebSocketFrame\SendMessageFrame.cs">
+    <Compile Include="..\WebSockets\WebSocketFrame\SendMessageFrame.cs">
       <Link>WebSocketFrame\SendMessageFrame.cs</Link>
     </Compile>
-    <Compile Include="..\Websockets\WebSocketFrame\WebSocketCloseStatus.cs">
+    <Compile Include="..\WebSockets\WebSocketFrame\WebSocketCloseStatus.cs">
       <Link>WebSocketFrame\WebSocketCloseStatus.cs</Link>
     </Compile>
-    <Compile Include="..\Websockets\WebSocketFrame\WebSocketMessageType.cs">
+    <Compile Include="..\WebSockets\WebSocketFrame\WebSocketMessageType.cs">
       <Link>WebSocketFrame\WebSocketMessageType.cs</Link>
     </Compile>
-    <Compile Include="..\Websockets\WebSocketFrame\WebSocketOptions.cs">
+    <Compile Include="..\WebSockets\WebSocketFrame\WebSocketOptions.cs">
       <Link>WebSocketFrame\WebSocketOptions.cs</Link>
     </Compile>
-    <Compile Include="..\Websockets\WebSocketFrame\WebSocketState.cs">
+    <Compile Include="..\WebSockets\WebSocketFrame\WebSocketState.cs">
       <Link>WebSocketFrame\WebSocketState.cs</Link>
     </Compile>
-    <Compile Include="..\Websockets\WebSocketHelpers.cs">
+    <Compile Include="..\WebSockets\WebSocketHelpers.cs">
       <Link>WebSocketHelpers.cs</Link>
     </Compile>
-    <Compile Include="..\Websockets\WebSocketReceiver.cs">
+    <Compile Include="..\WebSockets\WebSocketReceiver.cs">
       <Link>WebSocketReceiver.cs</Link>
     </Compile>
-    <Compile Include="..\Websockets\WebSocketSender.cs">
+    <Compile Include="..\WebSockets\WebSocketSender.cs">
       <Link>WebSocketSender.cs</Link>
     </Compile>
-    <Compile Include="..\Websockets\WebSocketServer\WebSocketClientsPool.cs">
+    <Compile Include="..\WebSockets\WebSocketServer\WebSocketClientsPool.cs">
       <Link>WebSocketServer\WebSocketClientsPool.cs</Link>
     </Compile>
-    <Compile Include="..\Websockets\WebSocketServer\WebSocketServer.cs">
+    <Compile Include="..\WebSockets\WebSocketServer\WebSocketServer.cs">
       <Link>WebSocketServer\WebSocketServer.cs</Link>
     </Compile>
-    <Compile Include="..\Websockets\WebSocketServer\WebSocketServerClient.cs">
+    <Compile Include="..\WebSockets\WebSocketServer\WebSocketServerClient.cs">
       <Link>WebSocketServer\WebSocketServerClient.cs</Link>
     </Compile>
-    <Compile Include="..\Websockets\WebSocketServer\WebSocketServerOptions.cs">
+    <Compile Include="..\WebSockets\WebSocketServer\WebSocketServerOptions.cs">
       <Link>WebSocketServer\WebSocketServerOptions.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />

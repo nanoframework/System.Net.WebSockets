@@ -12,9 +12,10 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <FileAlignment>512</FileAlignment>
-    <RootNamespace>nanoframework.System.Net.WebSockets.Client</RootNamespace>
-    <AssemblyName>nanoframework.System.Net.WebSockets.Client</AssemblyName>
+    <RootNamespace>System.Net.WebSockets</RootNamespace>
+    <AssemblyName>System.Net.WebSockets</AssemblyName>
     <TargetFrameworkVersion>v1.0</TargetFrameworkVersion>
+    <DocumentationFile>bin\$(Configuration)\System.Net.WebSockets.xml</DocumentationFile>
   </PropertyGroup>
   <Import Project="$(NanoFrameworkProjectSystemPath)NFProjectSystem.props" Condition="Exists('$(NanoFrameworkProjectSystemPath)NFProjectSystem.props')" />
   <ItemGroup>
