@@ -1,4 +1,9 @@
-﻿using nanoframework.System.Net.Websockets.WebSocketFrame;
+﻿//
+// Copyright (c) .NET Foundation and Contributors
+// See LICENSE file in the project root for full license information.
+//
+
+using nanoframework.System.Net.Websockets.WebSocketFrame;
 using System.Net;
 
 namespace nanoframework.System.Net.Websockets

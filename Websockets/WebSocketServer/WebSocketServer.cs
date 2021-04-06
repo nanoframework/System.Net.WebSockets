@@ -1,12 +1,15 @@
-﻿using System;
-using System.Net;
-using System.Text;
-using System.Collections;
-using System.Threading;
-using System.Net.Sockets;
-using System.Diagnostics;
-using nanoframework.System.Net.Websockets;
+﻿//
+// Copyright (c) .NET Foundation and Contributors
+// See LICENSE file in the project root for full license information.
+//
+
 using nanoframework.System.Net.Websockets.WebSocketFrame;
+using System;
+using System.Diagnostics;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
 
 namespace nanoframework.System.Net.Websockets.Server
 {
