@@ -12,10 +12,11 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <FileAlignment>512</FileAlignment>
-    <RootNamespace>nanoframework.System.Net.WebSockets</RootNamespace>
-    <AssemblyName>nanoframework.System.Net.WebSockets</AssemblyName>
+    <RootNamespace>System.Net.WebSockets</RootNamespace>
+    <AssemblyName>System.Net.WebSockets</AssemblyName>
     <TargetFrameworkVersion>v1.0</TargetFrameworkVersion>
     <NF_IsCoreLibrary>True</NF_IsCoreLibrary>
+    <DocumentationFile>bin\$(Configuration)\System.Net.WebSockets.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
