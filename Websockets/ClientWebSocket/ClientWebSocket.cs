@@ -108,7 +108,7 @@ namespace System.Net.WebSockets
         {
             State = WebSocketFrame.WebSocketState.Connecting;
            
-            var splitUrl = uri.ToLower().Split(new char[] { ':', '/', '/' }, 4);
+            var splitUrl = uri.Split(new char[] { ':', '/', '/' }, 4);
 
             if (splitUrl.Length == 4 && splitUrl[0] == "ws")
             {
