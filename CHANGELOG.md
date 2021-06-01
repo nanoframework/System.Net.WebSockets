@@ -1,5 +1,9 @@
 # Changelog
 
+## [v1.0.0-preview.24](https://github.com/nanoframework/nanoFramework.System.Net.WebSockets/tree/v1.0.0-preview.24) (2021-05-24)
+
+[Full Changelog](https://github.com/nanoframework/nanoFramework.System.Net.WebSockets/compare/v1.0.0-preview.20...v1.0.0-preview.24)
+
 ## [v1.0.0-preview.20](https://github.com/nanoframework/nanoFramework.System.Net.WebSockets/tree/v1.0.0-preview.20) (2021-04-06)
 
 [Full Changelog](https://github.com/nanoframework/nanoFramework.System.Net.WebSockets/compare/7b0814ff45a2c381c0c23964b0c702916529ab5f...v1.0.0-preview.20)
