@@ -1,5 +1,17 @@
 # Changelog
 
+## [**Changes available only in 'Preview' NuGet packages:**](https://github.com/nanoframework/nanoFramework.System.Net.WebSockets/tree/HEAD)
+
+[Full Changelog](https://github.com/nanoframework/nanoFramework.System.Net.WebSockets/compare/v1.0.0-preview.26...HEAD)
+
+**Documentation and other chores:**
+
+- Update 5 nuget dependencies [\#8](https://github.com/nanoframework/nanoframework.System.Net.WebSockets/pull/8)
+
+## [v1.0.0-preview.26](https://github.com/nanoframework/nanoFramework.System.Net.WebSockets/tree/v1.0.0-preview.26) (2021-06-01)
+
+[Full Changelog](https://github.com/nanoframework/nanoFramework.System.Net.WebSockets/compare/v1.0.0-preview.24...v1.0.0-preview.26)
+
 ## [v1.0.0-preview.24](https://github.com/nanoframework/nanoFramework.System.Net.WebSockets/tree/v1.0.0-preview.24) (2021-05-24)
 
 [Full Changelog](https://github.com/nanoframework/nanoFramework.System.Net.WebSockets/compare/v1.0.0-preview.20...v1.0.0-preview.24)
