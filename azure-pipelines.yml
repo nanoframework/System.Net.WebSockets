@@ -2,11 +2,13 @@ trigger:
   branches:
     include: [main, develop, "release-*" ]
   paths:
-    exclude: [README.md, LICENSE.md, CHANGELOG.md, version.json, "*.md", .gitignore]
+    exclude: [README.md,  CHANGELOG.md, CODE_OF_CONDUCT.md, LICENSE.md, NuGet.Config, .github_changelog_generator, .gitignore]
   tags:
     include: ["v*"]
 
 # PR always trigger build
+pr:
+  autoCancel: true
 
 # add nf-tools repo to resources (for Azure Pipelines templates)
 resources:
@@ -20,12 +22,11 @@ pool:
   vmImage: 'windows-2019'
 
 variables:
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_NOLOGO: true
   solution: 'nanoframework.System.Net.Websockets.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   nugetPackageName: 'nanoFramework.System.Net.WebSockets'
-  repoName: 'nanoFramework.System.Net.WebSockets'
 
 steps:
 

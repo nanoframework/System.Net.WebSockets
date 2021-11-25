@@ -5,20 +5,18 @@
     <version>$version$</version>
     <title>nanoframework.System.Net.WebSockets.Server</title>
     <authors>nanoFramework project contributors</authors>
-    <owners>nanoFramework,dotnetfoundation</owners>
+    <owners>nanoframework,dotnetfoundation</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="file">LICENSE.md</license>
     <releaseNotes>
     </releaseNotes>
+    <readme>docs\README.md</readme>
     <developmentDependency>false</developmentDependency>
     <projectUrl>https://github.com/nanoframework/nanoframework.System.Net.WebSockets</projectUrl>
     <icon>images\nf-logo.png</icon>
     <repository type="git" url="https://github.com/nanoframework/nanoframework.System.Net.WebSockets" commit="$commit$" />
     <copyright>Copyright (c) .NET Foundation and Contributors</copyright>
-    <description>
-      This package includes the nanoframework.System.Net.WebSockets assembly (server API only) for .NET nanoFramework C# projects.
-There are also two other packages with just the client API and with the complete API.
-    </description>
+    <description>This package includes the nanoframework.System.Net.WebSockets assembly (server API only) for .NET nanoFramework C# projects.&#10;There are also two other packages with just the client API and with the complete API.</description>
     <tags>nanoFramework C# csharp netmf netnf nanoFramework.System.Net.WebSockets</tags>
     <dependencies>
       <dependency id="nanoFramework.CoreLibrary" version="1.10.5" />
@@ -35,6 +33,7 @@ There are also two other packages with just the client API and with the complete
     <file src="WebSockets.Server\bin\Release\System.Net.WebSockets.pe" target="lib\System.Net.WebSockets.pe" />
     <file src="WebSockets.Server\bin\Release\System.Net.WebSockets.xml" target="lib\System.Net.WebSockets.xml" />
     <file src="assets\readme.txt" target="" />
+    <file src="README.md" target="docs\" />
     <file src="assets\nf-logo.png" target="images\" />
     <file src="LICENSE.md" target="" />
   </files>
