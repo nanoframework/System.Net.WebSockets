@@ -27,6 +27,7 @@ namespace System.Net.WebSockets.WebSocketFrame
 
         /// <summary>
         /// A close message was sent to the remote endpoint.
+        /// </summary>
         CloseSent = 3,
 
         /// <summary>

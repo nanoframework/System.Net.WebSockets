@@ -12,6 +12,11 @@ using System.Text;
 
 namespace System.Net.WebSockets
 {
+    /// <summary>
+    /// Describes the method that will handle the event that's fired when a message that has been subscribed to has been received.
+    /// </summary>
+    /// <param name="sender">The proximity device that received the message.</param>
+    /// <param name="e">The proximity device that received the message.</param>
     public delegate void MessageReceivedEventHandler(object sender, MessageReceivedEventArgs e);
 
     /// <summary>
@@ -20,7 +25,7 @@ namespace System.Net.WebSockets
     public class ClientWebSocket : WebSocket, IDisposable
     {
         private NetworkStream _networkStream;
-        
+
         private X509Certificate _certificate = null;
 
         /// <summary>
@@ -46,6 +51,9 @@ namespace System.Net.WebSockets
         /// </summary>
         public string Host { get; private set; }
 
+        /// <summary>
+        /// Option to use a custom certificate for authentication.
+        /// </summary>
         public bool UseCustomCertificate => _certificate != null;
 
         /// <summary>
@@ -91,10 +99,10 @@ namespace System.Net.WebSockets
         /// <param name="options">Optional <see cref="ClientWebSocketOptions"/> where extra options can be defined.</param>
         public ClientWebSocket(ClientWebSocketOptions options = null) : base(options)
         {
-            if(options != null)
+            if (options != null)
             {
                 SslProtocol = options.SslProtocol;
-                 SslVerification = options.SslVerification;
+                SslVerification = options.SslVerification;
                 _certificate = options.Certificate;
             }
         }
@@ -103,11 +111,10 @@ namespace System.Net.WebSockets
         /// Connect to a WebSocket server.
         /// </summary>
         /// <param name="uri">The URI of the WebSocket server to connect to.</param>
-        /// <param name="messageReceivedHandler">A handler that is called when the WebSocket server receives a message</param>
         public void Connect(string uri)
         {
             State = WebSocketFrame.WebSocketState.Connecting;
-           
+
             var splitUrl = uri.Split(new char[] { ':', '/', '/' }, 4);
 
             if (splitUrl.Length == 4 && splitUrl[0] == "ws")
@@ -161,6 +168,7 @@ namespace System.Net.WebSockets
             _tcpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             NetworkStream stream = null;
+
             try
             {
                 _tcpSocket.Connect(ep);
@@ -204,9 +212,9 @@ namespace System.Net.WebSockets
             _tcpSocket.Close();
         }
 
-        private void WebSocketClientConnect(IPEndPoint remoteEndPoint, string prefix = "/", string host = null )
+        private void WebSocketClientConnect(IPEndPoint remoteEndPoint, string prefix = "/", string host = null)
         {
-             if (prefix[0] != '/') throw new Exception("websocket prefix has to start with '/'");
+            if (prefix[0] != '/') throw new Exception("websocket prefix has to start with '/'");
 
             byte[] keyBuf = new byte[16];
             new Random().NextBytes(keyBuf);
@@ -226,10 +234,10 @@ namespace System.Net.WebSockets
             if (bytesRead == bufferStart.Length)
             {
                 if (Encoding.UTF8.GetString(bufferStart, 0, bufferStart.Length).ToLower() == beginHeader)
-                { 
+                {
                     //right http request
                     bytesRead = _networkStream.Read(buffer, 0, buffer.Length);
-                    
+
                     if (bytesRead > 20)
                     {
                         var headers = WebSocketHelpers.ParseHeaders(Encoding.UTF8.GetString(buffer, 0, bytesRead));

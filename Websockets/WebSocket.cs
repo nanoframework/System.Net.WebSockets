@@ -66,6 +66,7 @@ namespace System.Net.WebSockets
         /// <value>
         /// The maximum allowed byte length of a partial message send by the WebSocket.
         /// </value>
+        /// </summary>
         public int MaxFragmentSize { get; private set; } = 1024;
 
         /// <summary>
@@ -334,19 +335,6 @@ namespace System.Net.WebSockets
             }
         }
 
-        //private void RelayMessage(ReceiveMessageFrame messageFrame)
-        //{
-        //    if (messageFrame.Error)
-        //    {
-        ///    Debug.WriteLine($"{RemoteEndPoint.ToString()} error - {messageFrame.ErrorMessage}");
-        ///    RawClose(messageFrame.CloseStatus, Encoding.UTF8.GetBytes(messageFrame.ErrorMessage), true);
-        //    }
-        //    else
-        //    {
-        ///    LastContact = DateTime.UtcNow;
-        ///    OnNewMessage(messageFrame);
-        //    }
-        //}
 
         //Ping will only commence from this thread because of threading safety. 
         internal void SendPing(string pingContent = "hello")

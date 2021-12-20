@@ -9,6 +9,9 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace System.Net.WebSockets
 {
+    /// <summary>
+    /// Options to use with a <see cref="ClientWebSocket"/> object.
+    /// </summary>
     public class ClientWebSocketOptions : WebSocketOptions
     {
         /// <summary>
