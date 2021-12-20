@@ -16,8 +16,7 @@
     <icon>images\nf-logo.png</icon>
     <repository type="git" url="https://github.com/nanoframework/nanoframework.System.Net.WebSockets" commit="$commit$" />
     <copyright>Copyright (c) .NET Foundation and Contributors</copyright>
-    <description>This package includes the nanoframework.System.Net.WebSockets assembly (client API only) for .NET nanoFramework C# projects.
-There are also two other packages with just the server API and with the complete API.</description>
+    <description>This package includes the nanoframework.System.Net.WebSockets assembly (client API only) for .NET nanoFramework C# projects.&#10;There are also two other packages, one with the server API only and another with the complete API.</description>
     <tags>nanoFramework C# csharp netmf netnf nanoFramework.System.Net.WebSockets</tags>
     <dependencies>
       <dependency id="nanoFramework.CoreLibrary" version="1.11.7" />
