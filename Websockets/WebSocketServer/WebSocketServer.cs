@@ -130,9 +130,47 @@ namespace System.Net.WebSockets.Server
                 _options = options;
             }
             _webSocketClientsPool = new WebSocketClientsPool(MaxClients);
+
         }
 
+        /// <summary>
+        /// Add a websocket client to the Websocket.
+        ///</summary>
+        ///<param name="options"> Optional <see cref="WebSocketServerOptions"/> where extra options can be defined.</param>
+        public bool AddWebSocket(HttpListenerContext context)
+        {
+            //TODO check for limit number of clients. 
+            WebSocketContext websocketContext = context.GetWebsocketContext();
+            var headerConnection = websocketContext.Response.Headers.GetValues("Connection");
+            var headerUpgrade = websocketContext.Response.Headers.GetValues("Upgrade");
+            var headerSwk = websocketContext.Response.Headers.GetValues("Sec-WebSocket-Key");
 
+            if(headerConnection.Length > 0  && headerConnection[0] == "Upgrade" && headerUpgrade.Length > 0 && headerUpgrade[0] == "websocket" && headerSwk.Length > 0 && !string.IsNullOrEmpty(headerSwk[0])){
+                //calculate sec-websocket-key and complete handshake
+                string swk = headerSwk[0];
+                string swka = swk + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"; //default signature for websocket
+                byte[] swkaSha1 = WebSocketHelpers.ComputeHash(swka);
+                string swkaSha1Base64 = Convert.ToBase64String(swkaSha1);
+                byte[] response = Encoding.UTF8.GetBytes($"HTTP/1.1 101 Web Socket Protocol Handshake\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: {swkaSha1Base64}\r\nServer: {ServerName}\r\nUpgrade: websocket\r\n\r\n");
+                websocketContext.m_networkStream.Write(response, 0, response.Length);
+
+                var webSocketClient = new WebSocketServerClient(_options);
+                webSocketClient.ConnectToStream(websocketContext.m_networkStream, (IPEndPoint)websocketContext.m_socket.RemoteEndPoint, onMessageReceived);
+                if (_webSocketClientsPool.Add(webSocketClient))
+                { //check if clients are not full again
+                    WebSocketOpened?.Invoke(this, new WebSocketOpenedEventArgs() { EndPoint = webSocketClient.RemoteEndPoint });
+                    webSocketClient.ConnectionClosed += OnConnectionClosed;
+                    return true;
+                }
+                else
+                {
+                    webSocketClient.Dispose();
+                    return false;
+                }
+            }
+            return false;
+
+        }
 
         //
         /// <summary>
@@ -300,6 +338,7 @@ namespace System.Net.WebSockets.Server
 
             Debug.WriteLine("websocket server halted!");
         }
+
 
         private bool HandleTcpWebSocketRequest(Socket networkSocket, string prefix = "/", string serverName = "NFWebSocketServer")
         {
