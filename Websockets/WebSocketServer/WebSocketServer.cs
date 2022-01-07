@@ -117,6 +117,7 @@ namespace System.Net.WebSockets.Server
         private Thread _listnerThread;
 
         private readonly WebSocketServerOptions _options = new WebSocketServerOptions();
+        private HttpListener _httpListener;
 
         /// <summary>
         /// Creates an instance of the System.Net.WebSockets.WebSocketServer class.
@@ -127,6 +128,10 @@ namespace System.Net.WebSockets.Server
             if (options != null)
             {
                 if (options.Prefix[0] != '/') throw new Exception("websocket prefix has to start with '/'");
+                if (options.IsStandAlone)
+                {
+                    _httpListener = new HttpListener("http", options.Port);
+                }
                 _options = options;
             }
             _webSocketClientsPool = new WebSocketClientsPool(MaxClients);
@@ -140,14 +145,23 @@ namespace System.Net.WebSockets.Server
         public bool AddWebSocket(HttpListenerContext context)
         {
             //TODO check for limit number of clients. 
-            WebSocketContext websocketContext = context.GetWebsocketContext();
-            var headerConnection = websocketContext.Response.Headers.GetValues("Connection");
-            var headerUpgrade = websocketContext.Response.Headers.GetValues("Upgrade");
-            var headerSwk = websocketContext.Response.Headers.GetValues("Sec-WebSocket-Key");
 
-            if(headerConnection.Length > 0  && headerConnection[0] == "Upgrade" && headerUpgrade.Length > 0 && headerUpgrade[0] == "websocket" && headerSwk.Length > 0 && !string.IsNullOrEmpty(headerSwk[0])){
+            var headerConnection = context.Request.Headers["Connection"];
+            var headerUpgrade = context.Request.Headers["Upgrade"];
+            var headerSwk = context.Request.Headers["Sec-WebSocket-Key"];
+            WebSocketContext websocketContext = context.GetWebsocketContext();
+
+            if (headerConnection == "Upgrade" && headerUpgrade == "websocket" && !string.IsNullOrEmpty(headerSwk))
+            {
+                if (_webSocketClientsPool.Count >= _webSocketClientsPool.Max)
+                {
+                    byte[] serverFullResponse = Encoding.UTF8.GetBytes($"HTTP/1.1 503 WebSocket Server is full\r\n\r\n");
+                    websocketContext.m_networkStream.Write(serverFullResponse, 0, serverFullResponse.Length);
+                    return false;
+                }
+
                 //calculate sec-websocket-key and complete handshake
-                string swk = headerSwk[0];
+                string swk = headerSwk;
                 string swka = swk + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"; //default signature for websocket
                 byte[] swkaSha1 = WebSocketHelpers.ComputeHash(swka);
                 string swkaSha1Base64 = Convert.ToBase64String(swkaSha1);
@@ -179,10 +193,20 @@ namespace System.Net.WebSockets.Server
         public void Start()
         {
             Started = true;
-            _listnerThread = new Thread(ListenIncommingSocketRequest);
-            _listnerThread.Start();
 
+            if (_httpListener != null)
+            {
+                _listnerThread = new Thread(ListenIncommingSocketRequest);
+                _listnerThread.Start();
+                Debug.WriteLine($"websocket server Started at {IPAddress.GetDefaultLocalAddress()}:{Port}{Prefix}");
+            }
+            else
+            {
+                Debug.WriteLine("websocket server Started!");
+            }
 
+            
+            
         }
 
         /// <summary>
@@ -317,96 +341,45 @@ namespace System.Net.WebSockets.Server
             }
         }
 
-        private void ListenIncommingSocketRequest()
-        {
-            var listenPoint = new IPEndPoint(IPAddress.Any, Port);
+        private void ListenIncommingSocketRequest() 
+        { 
+            _httpListener.Start();
 
-            using (Socket mySocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
+            while (Started)
             {
-                mySocket.Bind(listenPoint);
-                Debug.WriteLine("websocket server Started!");
-                while (Started)
+                HttpListenerContext context = _httpListener.GetContext();
+                if (context == null) return;
+
+                new Thread(() =>
                 {
-                    mySocket.Listen(2);
-
-                    var socket = mySocket.Accept();
-                    HandleTcpWebSocketRequest(socket, Prefix, ServerName);
-
-                }
-
-            }
-
-            Debug.WriteLine("websocket server halted!");
-        }
-
-
-        private bool HandleTcpWebSocketRequest(Socket networkSocket, string prefix = "/", string serverName = "NFWebSocketServer")
-        {
-
-            NetworkStream networkStream = new NetworkStream(networkSocket);
-
-
-            string beginHeader = ($"GET {prefix} HTTP/1.1".ToLower());
-            byte[] bufferStart = new byte[beginHeader.Length];
-            byte[] buffer = new byte[600];
-
-            int bytesRead = networkStream.Read(bufferStart, 0, bufferStart.Length);
-            if (bytesRead == bufferStart.Length)
-            {
-                if (Encoding.UTF8.GetString(bufferStart, 0, bufferStart.Length).ToLower() == beginHeader)
-                { //right http request
-                    bytesRead = networkStream.Read(buffer, 0, buffer.Length);
-                    if (bytesRead > 20)
+                    try
                     {
-                        var headers = WebSocketHelpers.ParseHeaders(Encoding.UTF8.GetString(buffer, 0, bytesRead));
-
-                        if (((string)headers["connection"]).ToLower() == "upgrade" && ((string)headers["upgrade"]).ToLower() == "websocket" && headers["sec-websocket-key"] != null)
+                        if (context.Request.RawUrl == Prefix)
                         {
-                            if (_webSocketClientsPool.Count >= _webSocketClientsPool.Max)
+                            if (!AddWebSocket(context)) //failed to add websocket so close the socket
                             {
-                                byte[] serverFullResponse = Encoding.UTF8.GetBytes($"HTTP/1.1 503 WebSocket Server is full\r\n\r\n");
-                                networkStream.Write(serverFullResponse, 0, serverFullResponse.Length);
-                                return false;
-                            }
-                            //calculate sec-websocket-key and complete handshake
-                            string swk = (string)headers["sec-websocket-key"];
-                            string swka = swk + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"; //default signature for websocket
-                            byte[] swkaSha1 = WebSocketHelpers.ComputeHash(swka);
-                            string swkaSha1Base64 = Convert.ToBase64String(swkaSha1);
-                            byte[] response = Encoding.UTF8.GetBytes($"HTTP/1.1 101 Web Socket Protocol Handshake\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: {swkaSha1Base64}\r\nServer: {ServerName}\r\nUpgrade: websocket\r\n\r\n");
-                            networkStream.Write(response, 0, response.Length);
-
-                            var webSocketClient = new WebSocketServerClient(_options);
-                            webSocketClient.ConnectToStream(networkStream, (IPEndPoint)networkSocket.RemoteEndPoint, onMessageReceived);
-                            if (_webSocketClientsPool.Add(webSocketClient))
-                            { //check if clients are not full again
-                                WebSocketOpened?.Invoke(this, new WebSocketOpenedEventArgs() { EndPoint = webSocketClient.RemoteEndPoint });
-                                webSocketClient.ConnectionClosed += OnConnectionClosed;
-                            }
-                            else
-                            {
-                                webSocketClient.Dispose();
-                                return false;
+                                context.Response.Close();
+                                context.Close();
                             }
                         }
+                        else
+                        {
+                            context.Response.StatusCode = 404;
+                            context.Response.ContentLength64 = 0;
+                            context.Response.Close();
+                            context.Close();
+                        }
+
 
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        networkStream.Close();
-                        return false;
+                        Debug.WriteLine("* Error getting context: " + ex.Message + "\r\nSack = " + ex.StackTrace);
                     }
-                }
+                }).Start();
             }
-            else
-            {
-                networkStream.Close();
-                return false;
-            }
-
-            return true;
-
         }
+
 
         private void OnConnectionClosed(object sender, EventArgs e)
         {

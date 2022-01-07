@@ -67,68 +67,72 @@ namespace WebsocketHttpContextTester
 
             //HTTPListner
 
-            //string responseString = "<HTML><BODY>Hello world! This is nanoFramework.</BODY></HTML>";
-            byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+            ////string responseString = "<HTML><BODY>Hello world! This is nanoFramework.</BODY></HTML>";
+            //byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
 
-            // Create a listener.
-            string prefix = "http";
-            int port = prefix == "http" ? 80 : 443;
+            //// Create a listener.
+            //string prefix = "http";
+            //int port = prefix == "http" ? 80 : 443;
 
-            Debug.WriteLine("* Creating Http Listener: " + prefix + " on port " + port);
-            HttpListener listener = new HttpListener(prefix, port);
-
-
-            Debug.WriteLine($"Listening for HTTP requests @ {ipAddress}:{port} ...");
-            listener.Start();
-
-            while (true)
-            {
-
-                // now wait on context for a connection
-                HttpListenerContext context = listener.GetContext();
-                if (context == null) return;
-
-                new Thread(() =>
-                {
-                    try
-                    {
-                            // Get the response stream and write the response content to it
-                            //Debug.WriteLine(context.Request.RawUrl);
-                        if (context.Request.RawUrl == "/")
-                        {
-                            context.Response.StatusCode = 200;
-                            context.Response.ContentLength64 = buffer.Length;
-                            context.Response.OutputStream.Write(buffer, 0, buffer.Length);
-                            context.Response.Close();
-                            context.Close();
-                        }
-                        else if(context.Request.RawUrl == "/websocket")
-                        {
-                            
-                            if (!s_wsServer.AddWebSocket(context))
-                            {
-                                Debug.WriteLine("not connected");
-                            }
-                        }
-                        else
-                        {
-                            context.Response.StatusCode = 404;
-                            context.Response.ContentLength64 = 0;
-                            context.Response.Close();
-                            context.Close();
-                        }
+            //Debug.WriteLine("* Creating Http Listener: " + prefix + " on port " + port);
+            //HttpListener listener = new HttpListener(prefix, port);
 
 
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine("* Error getting context: " + ex.Message + "\r\nSack = " + ex.StackTrace);
-                    }
-                }).Start();
+            //Debug.WriteLine($"Listening for HTTP requests @ {ipAddress}:{port} ...");
+            //listener.Start();
 
-            }
+            //while (true)
+            //{
+
+            //    // now wait on context for a connection
+            //    HttpListenerContext context = listener.GetContext();
+            //    if (context == null) return;
+
+            //    new Thread(() =>
+            //    {
+            //        try
+            //        {
+            //                // Get the response stream and write the response content to it
+            //                //Debug.WriteLine(context.Request.RawUrl);
+            //            if (context.Request.RawUrl == "/")
+            //            {
+            //                var headers = context.Request.Headers.AllKeys;
+            //                context.Response.StatusCode = 200;
+            //                context.Response.ContentLength64 = buffer.Length;
+            //                context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+            //                context.Response.Close();
+            //                context.Close();
+            //            }
+            //            else if(context.Request.RawUrl == "/websocket")
+            //            {
+            //                //var headers = context.Request.Headers.AllKeys;
+            //                var headerConnection = context.Request.Headers["Connection"];
+            //                var headerUpgrade = context.Response.Headers["Upgrade"];
+            //                var headerSwk = context.Response.Headers["Sec-WebSocket-Key"]; 
+            //                if (!s_wsServer.AddWebSocket(context))
+            //                {
+            //                    Debug.WriteLine("not connected");
+            //                }
+            //            }
+            //            else
+            //            {
+            //                context.Response.StatusCode = 404;
+            //                context.Response.ContentLength64 = 0;
+            //                context.Response.Close();
+            //                context.Close();
+            //            }
 
 
+            //        }
+            //        catch (Exception ex)
+            //        {
+            //            Debug.WriteLine("* Error getting context: " + ex.Message + "\r\nSack = " + ex.StackTrace);
+            //        }
+            //    }).Start();
+
+            //}
+
+            Thread.Sleep(-1);
 
 
             // Browse our samples repository: https://github.com/nanoframework/samples
