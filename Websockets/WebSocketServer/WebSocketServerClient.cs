@@ -11,17 +11,16 @@ namespace System.Net.WebSockets.Server
     internal class WebSocketServerClient : WebSocket
     {
         public override WebSocketState State { get; set; } = WebSocketState.Closed;
-        internal WebSocketContext WebSocketContext;
 
         internal WebSocketServerClient(WebSocketServerOptions options) : base(options)
         {
             
         }
 
-        internal void ConnectToStream(NetworkStream stream, Socket socket, WebSocketContext webSocketContext ,MessageReceivedEventHandler messageReceivedHandler)
+        internal void ConnectToStream(WebSocketContext webSocketContext ,MessageReceivedEventHandler messageReceivedHandler)
         {
-            WebSocketContext = webSocketContext;
-            ConnectToStream(stream, true, socket);
+            //WebSocketContext = webSocketContext;
+            ConnectToStream(webSocketContext.NetworkStream, true, webSocketContext.Socket);
             base.MessageReceived += messageReceivedHandler;
         }
     }

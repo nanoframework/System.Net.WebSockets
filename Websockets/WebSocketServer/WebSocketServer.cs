@@ -170,7 +170,7 @@ namespace System.Net.WebSockets.Server
                 websocketContext.NetworkStream.Write(response, 0, response.Length);
 
                 var webSocketClient = new WebSocketServerClient(_options);
-                webSocketClient.ConnectToStream(websocketContext.NetworkStream, websocketContext.Socket, websocketContext, onMessageReceived);
+                webSocketClient.ConnectToStream(websocketContext, onMessageReceived);
                 if (_webSocketClientsPool.Add(webSocketClient))
                 {
                     WebSocketOpened?.Invoke(this, new WebSocketOpenedEventArgs() { EndPoint = webSocketClient.RemoteEndPoint });
@@ -183,8 +183,8 @@ namespace System.Net.WebSockets.Server
                     return false;
                 }
             }
-            context.Response.Close();
-            context.Close();
+            websocketContext.NetworkStream.Close();
+            websocketContext.Socket.Close();
             return false;
 
         }
