@@ -18,10 +18,10 @@ namespace System.Net.WebSockets.Server
             
         }
 
-        internal void ConnectToStream(NetworkStream stream, IPEndPoint remoteEndPoint, WebSocketContext webSocketContext ,MessageReceivedEventHandler messageReceivedHandler)
+        internal void ConnectToStream(NetworkStream stream, Socket socket, WebSocketContext webSocketContext ,MessageReceivedEventHandler messageReceivedHandler)
         {
             WebSocketContext = webSocketContext;
-            ConnectToStream(stream, true, remoteEndPoint);
+            ConnectToStream(stream, true, socket);
             base.MessageReceived += messageReceivedHandler;
         }
     }

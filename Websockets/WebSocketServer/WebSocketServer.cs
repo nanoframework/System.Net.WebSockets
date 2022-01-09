@@ -140,8 +140,9 @@ namespace System.Net.WebSockets.Server
 
         /// <summary>
         /// Add a websocket client to the Websocket.
+        /// After this the HttpListnerContext should be discarded!
         ///</summary>
-        ///<param name="options"> Optional <see cref="WebSocketServerOptions"/> where extra options can be defined.</param>
+        ///<param name="context"> The HttpListnerContext
         public bool AddWebSocket(HttpListenerContext context)
         {
             //TODO check for limit number of clients. 
@@ -156,7 +157,7 @@ namespace System.Net.WebSockets.Server
                 if (_webSocketClientsPool.Count >= _webSocketClientsPool.Max)
                 {
                     byte[] serverFullResponse = Encoding.UTF8.GetBytes($"HTTP/1.1 503 WebSocket Server is full\r\n\r\n");
-                    websocketContext.m_networkStream.Write(serverFullResponse, 0, serverFullResponse.Length);
+                    websocketContext.NetworkStream.Write(serverFullResponse, 0, serverFullResponse.Length);
                     return false;
                 }
 
@@ -166,10 +167,10 @@ namespace System.Net.WebSockets.Server
                 byte[] swkaSha1 = WebSocketHelpers.ComputeHash(swka);
                 string swkaSha1Base64 = Convert.ToBase64String(swkaSha1);
                 byte[] response = Encoding.UTF8.GetBytes($"HTTP/1.1 101 Web Socket Protocol Handshake\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: {swkaSha1Base64}\r\nServer: {ServerName}\r\nUpgrade: websocket\r\n\r\n");
-                websocketContext.m_networkStream.Write(response, 0, response.Length);
+                websocketContext.NetworkStream.Write(response, 0, response.Length);
 
                 var webSocketClient = new WebSocketServerClient(_options);
-                webSocketClient.ConnectToStream(websocketContext.m_networkStream, (IPEndPoint)websocketContext.m_socket.RemoteEndPoint, websocketContext, onMessageReceived);
+                webSocketClient.ConnectToStream(websocketContext.NetworkStream, websocketContext.Socket, websocketContext, onMessageReceived);
                 if (_webSocketClientsPool.Add(webSocketClient))
                 {
                     WebSocketOpened?.Invoke(this, new WebSocketOpenedEventArgs() { EndPoint = webSocketClient.RemoteEndPoint });
@@ -179,8 +180,6 @@ namespace System.Net.WebSockets.Server
                 else
                 {
                     webSocketClient.Dispose();
-                    //context.Response.Close();
-                    context.Close();
                     return false;
                 }
             }
@@ -362,8 +361,7 @@ namespace System.Net.WebSockets.Server
                         {
                             if (!AddWebSocket(context)) //failed to add websocket so close the socket
                             {
-                                context.Response.Close();
-                                context.Close();
+
                             }
                         }
                         else
@@ -392,8 +390,6 @@ namespace System.Net.WebSockets.Server
             WebSocketClosed?.Invoke(this, new WebSocketClosedEventArgs() { EndPoint = endPoint });
             var websocket = _webSocketClientsPool.Get(endPoint.ToString());
             _webSocketClientsPool.Remove(endPoint.ToString());
-            //websocket?.WebSocketContext.Response.Close();
-            websocket?.WebSocketContext.Close();
 
         }
 
