@@ -169,9 +169,9 @@ namespace System.Net.WebSockets.Server
                 websocketContext.m_networkStream.Write(response, 0, response.Length);
 
                 var webSocketClient = new WebSocketServerClient(_options);
-                webSocketClient.ConnectToStream(websocketContext.m_networkStream, (IPEndPoint)websocketContext.m_socket.RemoteEndPoint, onMessageReceived);
+                webSocketClient.ConnectToStream(websocketContext.m_networkStream, (IPEndPoint)websocketContext.m_socket.RemoteEndPoint, websocketContext, onMessageReceived);
                 if (_webSocketClientsPool.Add(webSocketClient))
-                { //check if clients are not full again
+                {
                     WebSocketOpened?.Invoke(this, new WebSocketOpenedEventArgs() { EndPoint = webSocketClient.RemoteEndPoint });
                     webSocketClient.ConnectionClosed += OnConnectionClosed;
                     return true;
@@ -179,9 +179,13 @@ namespace System.Net.WebSockets.Server
                 else
                 {
                     webSocketClient.Dispose();
+                    //context.Response.Close();
+                    context.Close();
                     return false;
                 }
             }
+            context.Response.Close();
+            context.Close();
             return false;
 
         }
@@ -386,7 +390,11 @@ namespace System.Net.WebSockets.Server
 
             var endPoint = ((WebSocket)sender).RemoteEndPoint;
             WebSocketClosed?.Invoke(this, new WebSocketClosedEventArgs() { EndPoint = endPoint });
+            var websocket = _webSocketClientsPool.Get(endPoint.ToString());
             _webSocketClientsPool.Remove(endPoint.ToString());
+            //websocket?.WebSocketContext.Response.Close();
+            websocket?.WebSocketContext.Close();
+
         }
 
         private void onMessageReceived(object sender, MessageReceivedEventArgs e)

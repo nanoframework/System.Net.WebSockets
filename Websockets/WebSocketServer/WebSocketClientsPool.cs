@@ -23,7 +23,7 @@ namespace System.Net.WebSockets.Server
         }
 
 
-        public bool Add(WebSocket webSocket)
+        public bool Add(WebSocketServerClient webSocket)
         {
             if (Count < Max)
             {
@@ -58,10 +58,10 @@ namespace System.Net.WebSockets.Server
             
         }
 
-        public WebSocket Get(string endPoint)
+        public WebSocketServerClient Get(string endPoint)
         {
 
-            return (WebSocket)_webSocketClients[endPoint];
+            return (WebSocketServerClient)_webSocketClients[endPoint];
   
         }
 
