@@ -4,7 +4,6 @@
 //
 
 using System.Diagnostics;
-using System.Net.Sockets;
 using System.Net.WebSockets.WebSocketFrame;
 using System.Text;
 using System.Threading;

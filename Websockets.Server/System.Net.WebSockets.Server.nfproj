@@ -119,6 +119,9 @@
       <Private>True</Private>
       <SpecificVersion>True</SpecificVersion>
     </Reference>
+    <Reference Include="System.Net.Http">
+      <HintPath>..\packages\nanoFramework.System.Net.Http.1.4.0-preview.3\lib\System.Net.Http.dll</HintPath>
+    </Reference>
     <Reference Include="System.Threading, Version=1.0.3.3, Culture=neutral, PublicKeyToken=c07d481e9758c731">
       <HintPath>..\packages\nanoFramework.System.Threading.1.0.3\lib\System.Threading.dll</HintPath>
       <Private>True</Private>
@@ -128,9 +131,6 @@
   <ItemGroup>
     <Folder Include="WebSocketFrame\" />
     <Folder Include="WebSocketServer\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\System.Net.Http\nanoFramework.System.Net.Http-server\System.Net.Http-server.nfproj" />
   </ItemGroup>
   <Import Project="$(NanoFrameworkProjectSystemPath)NFProjectSystem.CSharp.targets" Condition="Exists('$(NanoFrameworkProjectSystemPath)NFProjectSystem.CSharp.targets')" />
   <ProjectExtensions>
