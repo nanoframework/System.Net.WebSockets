@@ -8,7 +8,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectTypeGuids>{11A8DD76-328B-46DF-9F39-F559912D0360};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <ProjectGuid>08847152-faeb-41a8-bf85-bd8fc1c39c93</ProjectGuid>
+    <ProjectGuid>ef3a6935-1a5f-4ae8-a866-562af5803205</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <FileAlignment>512</FileAlignment>
@@ -33,6 +33,12 @@
   </ItemGroup>
   <Import Project="$(NanoFrameworkProjectSystemPath)NFProjectSystem.props" Condition="Exists('$(NanoFrameworkProjectSystemPath)NFProjectSystem.props')" />
   <ItemGroup>
+    <Compile Include="..\WebSockets\ClientWebSocket\ClientWebSocket.cs">
+      <Link>ClientWebSocket\ClientWebSocket.cs</Link>
+    </Compile>
+    <Compile Include="..\WebSockets\ClientWebSocket\ClientWebSocketOptions.cs">
+      <Link>ClientWebSocket\ClientWebSocketOptions.cs</Link>
+    </Compile>
     <Compile Include="..\WebSockets\MessageReceivedEventArgs.cs">
       <Link>MessageReceivedEventArgs.cs</Link>
     </Compile>
@@ -78,18 +84,6 @@
     <Compile Include="..\WebSockets\WebSocketSender.cs">
       <Link>WebSocketSender.cs</Link>
     </Compile>
-    <Compile Include="..\WebSockets\WebSocketServer\WebSocketClientsPool.cs">
-      <Link>WebSocketServer\WebSocketClientsPool.cs</Link>
-    </Compile>
-    <Compile Include="..\WebSockets\WebSocketServer\WebSocketServer.cs">
-      <Link>WebSocketServer\WebSocketServer.cs</Link>
-    </Compile>
-    <Compile Include="..\WebSockets\WebSocketServer\WebSocketServerClient.cs">
-      <Link>WebSocketServer\WebSocketServerClient.cs</Link>
-    </Compile>
-    <Compile Include="..\WebSockets\WebSocketServer\WebSocketServerOptions.cs">
-      <Link>WebSocketServer\WebSocketServerOptions.cs</Link>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -117,6 +111,10 @@
     <Reference Include="System.Net, Version=1.8.0.0, Culture=neutral, PublicKeyToken=c07d481e9758c731">
       <HintPath>..\packages\nanoFramework.System.Net.1.8.0-preview.5\lib\System.Net.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Threading, Version=1.0.3.3, Culture=neutral, PublicKeyToken=c07d481e9758c731">
+      <HintPath>..\packages\nanoFramework.System.Threading.1.0.3\lib\System.Threading.dll</HintPath>
+      <Private>True</Private>
       <SpecificVersion>True</SpecificVersion>
     </Reference>
     <Reference Include="System.Net.Http">
@@ -130,7 +128,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="WebSocketFrame\" />
-    <Folder Include="WebSocketServer\" />
+    <Folder Include="ClientWebSocket\" />
   </ItemGroup>
   <Import Project="$(NanoFrameworkProjectSystemPath)NFProjectSystem.CSharp.targets" Condition="Exists('$(NanoFrameworkProjectSystemPath)NFProjectSystem.CSharp.targets')" />
   <ProjectExtensions>
