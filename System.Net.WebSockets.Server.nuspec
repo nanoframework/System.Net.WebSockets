@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
-    <id>nanoframework.System.Net.WebSockets</id>
+    <id>nanoframework.System.Net.WebSockets.Server</id>
     <version>$version$</version>
-    <title>nanoframework.System.Net.WebSockets</title>
+    <title>nanoframework.System.Net.WebSockets.Server</title>
     <authors>nanoFramework project contributors</authors>
     <owners>nanoframework,dotnetfoundation</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -16,24 +16,23 @@
     <icon>images\nf-logo.png</icon>
     <repository type="git" url="https://github.com/nanoframework/nanoframework.System.Net.WebSockets" commit="$commit$" />
     <copyright>Copyright (c) .NET Foundation and Contributors</copyright>
-    <description>This package includes the nanoframework.System.Net.WebSockets assembly for nanoFramework C# projects.
-There are also two other packages with just the client API and just the server API.
-These are meant to be used when there is the need to use smaller assemblies.</description>
+    <description>This package includes the nanoframework.System.Net.WebSockets assembly (server API only) for .NET nanoFramework C# projects.
+There are also two other packages, one with the client API only and another with the complete API.</description>
     <tags>nanoFramework C# csharp netmf netnf nanoFramework.System.Net.WebSockets</tags>
     <dependencies>
       <dependency id="nanoFramework.CoreLibrary" version="1.11.7" />
       <dependency id="nanoFramework.Runtime.Events" version="1.10.0-preview.1" />
       <dependency id="nanoFramework.System.Collections" version="1.3.0" />
-      <dependency id="nanoFramework.System.Net" version="1.8.0-preview.5" />
+      <dependency id="nanoFramework.System.Net" version="1.8.0-preview.9" />
       <dependency id="nanoFramework.System.Text" version="1.1.3-preview.4" />
     </dependencies>
   </metadata>
   <files>
-    <file src="WebSockets\bin\Release\System.Net.WebSockets.dll" target="lib\System.Net.WebSockets.dll" />
-    <file src="WebSockets\bin\Release\System.Net.WebSockets.pdb" target="lib\System.Net.WebSockets.pdb" />
-    <file src="WebSockets\bin\Release\System.Net.WebSockets.pdbx" target="lib\System.Net.WebSockets.pdbx" />
-    <file src="WebSockets\bin\Release\System.Net.WebSockets.pe" target="lib\System.Net.WebSockets.pe" />
-    <file src="WebSockets\bin\Release\System.Net.WebSockets.xml" target="lib\System.Net.WebSockets.xml" />
+    <file src="WebSockets.Server\bin\Release\System.Net.WebSockets.dll" target="lib\System.Net.WebSockets.dll" />
+    <file src="WebSockets.Server\bin\Release\System.Net.WebSockets.pdb" target="lib\System.Net.WebSockets.pdb" />
+    <file src="WebSockets.Server\bin\Release\System.Net.WebSockets.pdbx" target="lib\System.Net.WebSockets.pdbx" />
+    <file src="WebSockets.Server\bin\Release\System.Net.WebSockets.pe" target="lib\System.Net.WebSockets.pe" />
+    <file src="WebSockets.Server\bin\Release\System.Net.WebSockets.xml" target="lib\System.Net.WebSockets.xml" />
     <file src="assets\readme.txt" target="" />
     <file src="README.md" target="docs\" />
     <file src="assets\nf-logo.png" target="images\" />
