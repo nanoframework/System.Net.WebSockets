@@ -277,6 +277,7 @@ namespace System.Net.WebSockets
             {
                 int msWaited = 0;
 
+                //Give it a moment for sending a close message. This will block the thread.
                 while (!_webSocketSender.CloseMessageSent ) 
                 {
                     msWaited += 50;
@@ -300,7 +301,9 @@ namespace System.Net.WebSockets
          
             ConnectionClosed?.Invoke(this, new EventArgs());
 
-            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Linger, 1); //linger
+            //Let the tcp socket linger for a second so it can try and send all data out before final close. 
+            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Linger, 1); 
+            
             _socket.Close();
         }
 
