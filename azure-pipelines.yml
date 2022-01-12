@@ -26,7 +26,6 @@ variables:
   solution: 'nanoframework.System.Net.Websockets.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  nugetPackageName: 'nanoFramework.System.Net.WebSockets'
 
 steps:
 
@@ -39,15 +38,15 @@ steps:
 # package steps
 - template: azure-pipelines-templates/class-lib-package.yml@templates  
   parameters:
-    nugetPackageName: 'nanoFramework.System.Net.WebSockets'
+    nugetPackageName: 'System.Net.WebSockets'
 
 - template: azure-pipelines-templates/class-lib-package.yml@templates  
   parameters:
-    nugetPackageName: 'nanoFramework.System.Net.WebSockets.Client'
+    nugetPackageName: 'System.Net.WebSockets.Client'
 
 - template: azure-pipelines-templates/class-lib-package.yml@templates  
   parameters:
-    nugetPackageName: 'nanoFramework.System.Net.WebSockets.Server'
+    nugetPackageName: 'System.Net.WebSockets.Server'
 
 - template: azure-pipelines-templates/class-lib-publish.yml@templates  
 
