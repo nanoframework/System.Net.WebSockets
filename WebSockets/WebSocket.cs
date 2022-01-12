@@ -300,7 +300,7 @@ namespace System.Net.WebSockets
          
             ConnectionClosed?.Invoke(this, new EventArgs());
 
-            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Linger, 3); //linger
+            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Linger, 1); //linger
             _socket.Close();
         }
 
