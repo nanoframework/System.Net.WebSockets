@@ -358,7 +358,7 @@ namespace System.Net.WebSockets.Server
                     {
                         if (context.Request.RawUrl == Prefix)
                         {
-                            if (!AddWebSocket(context)) //failed to add websocket so close the socket
+                            if (!AddWebSocket(context)) 
                             {
 
                             }

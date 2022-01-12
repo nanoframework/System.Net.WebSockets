@@ -19,7 +19,6 @@ namespace System.Net.WebSockets.Server
 
         internal void ConnectToStream(WebSocketContext webSocketContext ,MessageReceivedEventHandler messageReceivedHandler)
         {
-            //WebSocketContext = webSocketContext;
             ConnectToStream(webSocketContext.NetworkStream, true, webSocketContext.Socket);
             base.MessageReceived += messageReceivedHandler;
         }
