@@ -101,6 +101,8 @@ namespace System.Net.WebSockets
         /// The Remote Endpoint where the WebSocket connects to.
         /// </value>
         public IPEndPoint RemoteEndPoint { get; private set; }
+
+        private Socket _socket;
         
         /// <summary>
         /// Creates an instance of the System.Net.WebSockets.WebSocket class.
@@ -123,16 +125,17 @@ namespace System.Net.WebSockets
         /// </summary>
         /// <param name="stream">The stream for the connection.</param>
         /// <param name="isServer"><see langword="true"/> to indicate it's the server-side of the connection; <see langword="false"/> if it's the client-side.</param>
-        /// <param name="remoteEndPoint">The Remote Endpoint where the WebSocket connects to.</param>
-        protected void ConnectToStream(NetworkStream stream, bool isServer, IPEndPoint remoteEndPoint)
+        /// <param name="socket">The socket on which the WebSocket connects to.</param>
+        protected void ConnectToStream(NetworkStream stream, bool isServer, Socket socket)
         {
             ReceiveStream = stream;
             IsServer = isServer;
-            RemoteEndPoint = remoteEndPoint;
+            _socket = socket;
+            RemoteEndPoint = (IPEndPoint)socket.RemoteEndPoint;
             LastContactTimeStamp = DateTime.UtcNow;
 
             //start server sending and receiving async
-            WebSocketReceiver = new WebSocketReceiver(stream, remoteEndPoint, this, IsServer, MaxReceiveFrameSize, OnReadError);
+            WebSocketReceiver = new WebSocketReceiver(stream, RemoteEndPoint, this, IsServer, MaxReceiveFrameSize, OnReadError);
             _webSocketSender = new WebSocketSender(stream, IsServer, OnWriteError);
 
             ReceiveAndControllThread receiveThread = new ReceiveAndControllThread(this);
@@ -274,6 +277,7 @@ namespace System.Net.WebSockets
             {
                 int msWaited = 0;
 
+                //Give it a moment for sending a close message. This will block the thread.
                 while (!_webSocketSender.CloseMessageSent ) 
                 {
                     msWaited += 50;
@@ -295,7 +299,12 @@ namespace System.Net.WebSockets
 
             Debug.WriteLine($"Connection - {RemoteEndPoint.ToString()} - Closed");
          
-            ConnectionClosed?.Invoke(this, new EventArgs());   
+            ConnectionClosed?.Invoke(this, new EventArgs());
+
+            //Let the tcp socket linger for a second so it can try and send all data out before final close. 
+            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Linger, 1); 
+            
+            _socket.Close();
         }
 
         internal bool QueueMessageToSend(SendMessageFrame frame)
