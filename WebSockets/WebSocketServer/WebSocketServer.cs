@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Net.WebSockets.WebSocketFrame;
 using System.Text;
 using System.Threading;
+using System.Net;
 
 namespace System.Net.WebSockets.Server
 {
