@@ -132,7 +132,7 @@ namespace WebsocketHttpContextTester
 
             }
 
-            Thread.Sleep(-1);
+            Thread.Sleep(Timeout.Infinite);
 
 
             // Browse our samples repository: https://github.com/nanoframework/samples
