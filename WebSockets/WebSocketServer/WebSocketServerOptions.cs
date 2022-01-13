@@ -33,7 +33,7 @@ namespace System.Net.WebSockets.Server
         public string Prefix { get; set; } = "/";
 
         /// <summary>
-        /// Determents if the websocket runs as a independent websocket server with it's own HttpListner.
+        /// Determines if the websocket runs as a independent websocket server with it's own HttpListner.
         /// If set to true, the Websocket server will run a dedicated HttpListner on the defined port.
         /// If set to false, one has to run their own HTTPListner and use WebsocketServer.AddWebSocket(HttpListenerContext context) to manually add Websocket clients.
         /// </summary>
