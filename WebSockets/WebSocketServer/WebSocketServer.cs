@@ -150,6 +150,7 @@ namespace System.Net.WebSockets.Server
             var headerConnection = context.Request.Headers["Connection"];
             var headerUpgrade = context.Request.Headers["Upgrade"];
             var headerSwk = context.Request.Headers["Sec-WebSocket-Key"];
+            var headerSecProtocol = context.Request.Headers["Sec-WebSocket-Protocol"];
             WebSocketContext websocketContext = context.GetWebsocketContext();
 
             if (headerConnection == "Upgrade" && headerUpgrade == "websocket" && !string.IsNullOrEmpty(headerSwk))
@@ -166,7 +167,7 @@ namespace System.Net.WebSockets.Server
                 string swka = swk + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"; //default signature for websocket
                 byte[] swkaSha1 = WebSocketHelpers.ComputeHash(swka);
                 string swkaSha1Base64 = Convert.ToBase64String(swkaSha1);
-                byte[] response = Encoding.UTF8.GetBytes($"HTTP/1.1 101 Web Socket Protocol Handshake\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: {swkaSha1Base64}\r\nServer: {ServerName}\r\nUpgrade: websocket\r\n\r\n");
+                byte[] response = Encoding.UTF8.GetBytes($"HTTP/1.1 101 Web Socket Protocol Handshake\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: {swkaSha1Base64}\r\nServer: {ServerName}\r\nUpgrade: websocket{(!string.IsNullOrEmpty(headerSecProtocol)? "\r\nSec-WebSocket-Protocol: " + headerSecProtocol : "")}\r\n\r\n");
                 websocketContext.NetworkStream.Write(response, 0, response.Length);
 
                 var webSocketClient = new WebSocketServerClient(_options);
