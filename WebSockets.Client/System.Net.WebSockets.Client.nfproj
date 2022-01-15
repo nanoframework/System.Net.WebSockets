@@ -38,6 +38,9 @@
     </Compile>
     <Compile Include="..\WebSockets\ClientWebSocket\ClientWebSocketOptions.cs">
       <Link>ClientWebSocket\ClientWebSocketOptions.cs</Link>
+	</Compile>
+    <Compile Include="..\WebSockets\ClientWebSocket\ClientWebSocketHeaders.cs">
+      <Link>ClientWebSocket\ClientWebSocketHeaders.cs</Link>
     </Compile>
     <Compile Include="..\WebSockets\MessageReceivedEventArgs.cs">
       <Link>MessageReceivedEventArgs.cs</Link>
