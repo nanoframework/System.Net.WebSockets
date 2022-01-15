@@ -111,7 +111,8 @@ namespace System.Net.WebSockets
         /// Connect to a WebSocket server.
         /// </summary>
         /// <param name="uri">The URI of the WebSocket server to connect to.</param>
-        public void Connect(string uri)
+        /// <param name="headers">Optional <see cref="ClientWebSocketHeaders"/> for setting custom headers.</param>
+        public void Connect(string uri, ClientWebSocketHeaders headers = null)
         {
             State = WebSocketFrame.WebSocketState.Connecting;
 
@@ -195,7 +196,7 @@ namespace System.Net.WebSockets
                     _networkStream = new NetworkStream(_tcpSocket, true);
                 }
 
-                WebSocketClientConnect(ep, prefix, Host);
+                WebSocketClientConnect(ep, prefix, Host, headers);
             }
             catch (SocketException ex)
             {
@@ -212,15 +213,27 @@ namespace System.Net.WebSockets
             _tcpSocket.Close();
         }
 
-        private void WebSocketClientConnect(IPEndPoint remoteEndPoint, string prefix = "/", string host = null)
+        private void WebSocketClientConnect(IPEndPoint remoteEndPoint, string prefix = "/", string host = null, ClientWebSocketHeaders customHeaders = null)
         {
+            string customHeaderString = string.Empty;
+            if (customHeaders != null)
+            {
+                var headerKeys = customHeaders.Keys;
+                foreach (string key in headerKeys)
+                {
+                    if (!string.IsNullOrEmpty(key))
+                    {
+                        customHeaderString += $"{key}: {customHeaders[key]}\r\n";
+                    }
+                }
+            }
             if (prefix[0] != '/') throw new Exception("websocket prefix has to start with '/'");
 
             byte[] keyBuf = new byte[16];
             new Random().NextBytes(keyBuf);
             string swk = Convert.ToBase64String(keyBuf);
 
-            byte[] sendBuffer = Encoding.UTF8.GetBytes($"GET {prefix} HTTP/1.1\r\nHost: {(host != null ? host : remoteEndPoint.Address.ToString())}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: {swk}\r\nSec-WebSocket-Version: 13\r\n\r\n");
+            byte[] sendBuffer = Encoding.UTF8.GetBytes($"GET {prefix} HTTP/1.1\r\nHost: {(host != null ? host : remoteEndPoint.Address.ToString())}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: {swk}\r\nSec-WebSocket-Version: 13\r\n{customHeaderString}\r\n");
             _networkStream.Write(sendBuffer, 0, sendBuffer.Length);
 
             string beginHeader = ($"HTTP/1.1 101".ToLower());

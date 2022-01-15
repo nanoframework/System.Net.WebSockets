@@ -302,9 +302,15 @@ namespace System.Net.WebSockets
             ConnectionClosed?.Invoke(this, new EventArgs());
 
             //Let the tcp socket linger for a second so it can try and send all data out before final close. 
-            _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Linger, 1); 
-            
-            _socket.Close();
+            try
+            {
+                _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Linger, 1);
+                _socket.Close();
+            }
+            catch (ObjectDisposedException e)
+            {
+                Debug.WriteLine("socket could not be closed properly because it was already disposed");
+            }
         }
 
         internal bool QueueMessageToSend(SendMessageFrame frame)
