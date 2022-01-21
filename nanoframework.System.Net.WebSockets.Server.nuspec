@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>nanoframework.System.Net.WebSockets.Server</id>
@@ -20,13 +20,14 @@
 There are also two other packages, one with the client API only and another with the complete API.</description>
     <tags>nanoFramework C# csharp netmf netnf nanoFramework.System.Net.WebSockets</tags>
     <dependencies>
-      <dependency id="nanoFramework.CoreLibrary" version="1.11.7" />
-      <dependency id="nanoFramework.Runtime.Events" version="1.10.0-preview.1" />
+      <dependency id="nanoFramework.CoreLibrary" version="1.12.0-preview.1" />
+      <dependency id="nanoFramework.Runtime.Events" version="1.10.0-preview.4" />
       <dependency id="nanoFramework.System.Collections" version="1.3.0" />
       <dependency id="nanoFramework.System.Net" version="1.8.0-preview.9" />
       <dependency id="nanoFramework.System.Text" version="1.1.3-preview.4" />
       <dependency id="nanoFramework.System.Net.Http" version="1.4.0-preview.6" />
-    </dependencies>
+       <dependency id="nanoFramework.System.Threading" version="1.0.4-preview.6" />
+   </dependencies>
   </metadata>
   <files>
     <file src="WebSockets.Server\bin\Release\System.Net.WebSockets.dll" target="lib\System.Net.WebSockets.dll" />
