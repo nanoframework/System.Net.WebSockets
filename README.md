@@ -4,7 +4,7 @@
 
 -----
 
-### Welcome to the .NET **nanoFramework** System.Net.WebSockets Library repository
+# Welcome to the .NET **nanoFramework** System.Net.WebSockets Library repository
 
 This API mirrors (as close as possible) the official .NET [System.Net.WebSockets](https://docs.microsoft.com/en-us/dotnet/api/system.net.websockets.clientwebsocket). Exceptions are mainly derived from the lack of `async` and generics support in .NET **nanoFramework**.
 

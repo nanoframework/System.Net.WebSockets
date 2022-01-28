@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
-    <id>nanoframework.System.Net.WebSockets</id>
+    <id>nanoFramework.System.Net.WebSockets</id>
     <version>$version$</version>
-    <title>nanoframework.System.Net.WebSockets</title>
+    <title>nanoFramework.System.Net.WebSockets</title>
     <authors>nanoFramework project contributors</authors>
     <owners>nanoframework,dotnetfoundation</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -12,14 +12,14 @@
     </releaseNotes>
     <readme>docs\README.md</readme>
     <developmentDependency>false</developmentDependency>
-    <projectUrl>https://github.com/nanoframework/nanoframework.System.Net.WebSockets</projectUrl>
+    <projectUrl>https://github.com/nanoframework/System.Net.WebSockets</projectUrl>
     <icon>images\nf-logo.png</icon>
-    <repository type="git" url="https://github.com/nanoframework/nanoframework.System.Net.WebSockets" commit="$commit$" />
+    <repository type="git" url="https://github.com/nanoframework/System.Net.WebSockets" commit="$commit$" />
     <copyright>Copyright (c) .NET Foundation and Contributors</copyright>
-    <description>This package includes the nanoframework.System.Net.WebSockets assembly for nanoFramework C# projects.
+    <description>This package includes the System.Net.WebSockets assembly for nanoFramework C# projects.
 There are also two other packages with just the client API and just the server API.
 These are meant to be used when there is the need to use smaller assemblies.</description>
-    <tags>nanoFramework C# csharp netmf netnf nanoFramework.System.Net.WebSockets</tags>
+    <tags>nanoFramework C# csharp netmf netnf System.Net.WebSockets</tags>
     <dependencies>
       <dependency id="nanoFramework.CoreLibrary" version="1.12.0-preview.1" />
       <dependency id="nanoFramework.Runtime.Events" version="1.10.0-preview.4" />
