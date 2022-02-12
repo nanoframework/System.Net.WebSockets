@@ -40,6 +40,6 @@ namespace System.Net.WebSockets.WebSocketFrame
         /// <value>
         /// The maximum allowed byte length of a partial message send by the WebSocket.
         /// </value>
-        public int MaxFragmentSize { get; private set; } = 1024;
+        public int MaxFragmentSize { get; set; } = 32768;
     }
 }
