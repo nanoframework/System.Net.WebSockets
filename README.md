@@ -25,7 +25,7 @@ This is a Websocket Client and Server library for .NET nanoFramework. Websockets
 ## Client
 
 ### Connect to a websocket server
-To connect to a websocket server, create a `ClientWebsocket`. You can set extra websocket options by adding `ClientWebSocketOptions` upon initialization. These options can be used to set specific ssl options, change keep alive interval, server timeout and set maximum send and receive message size. 
+To connect to a websocket server, create a `ClientWebsocket`. You can set extra websocket options by adding `ClientWebSocketOptions` upon initialization. These options can be used to set specific SSL options, change keep alive interval, server timeout and set maximum send and receive message size. 
 You can start the connection by calling `Connect` with the uri of the websocket server. A websocket location always begins with `ws://` or `wss://`. You can use the optional `ClientWebSocketHeaders` to set specific headers. 
 
 > Note: The ClientWebSocketOptions.MaxFragmentSize sets the max package size of the outgoing messages. When sending a message that exceeds the maximum package size. The message will be automatically chunked into smaller messages. 
@@ -91,7 +91,7 @@ Messages can be received by setting an event handler for `MessageReceived`. This
 ##### Message Frame
 Websockets `MessageReceivedFrame` support two types of messages: `Text` and `Binary`. The property `MessageType` tells what type of message is received. `EndPoint` contains the IPEndPoind of the message sender. The `Buffer` contains the actual information that was send. 
 
-> Note: To be able to receive fragmented messages the user needs to implement there own logic. By checking IsFragmented you are able to see if you’re dealing with a fragmented message. The property Fragmentation tells if you are dealing with the begin, middle or end fragment of a message. 
+> Note: To be able to receive fragmented messages the user needs to implement there own logic. By checking IsFragmented you are able to see if youÂ’re dealing with a fragmented message. The property Fragmentation tells if you are dealing with the begin, middle or end fragment of a message. 
 
 ### Send Messages
 A message can be send by calling `SendString` for a text message or `SendBytes` for sending a binary message using a byte array. You can also call `Send` that takes a byte array and a `MessageType` as arguments. 
@@ -105,9 +105,9 @@ The `WebSocketServer` is a websocket host for nanoFramework that can handle mult
 The server shares a common websocket base with the Client implementation. 
  
 ### Creating a Server
-To start a new server, create a `WebsocketServer` with optional `WebSocketServerOptions`. By default this will start a selfhosted server on port 80, by setting the `Prefix` and `Port` options you can specify on what port and what prefix this server will listen. The default prefix is `/`. It’s recommended to set the `MaxClients` to make sure the server does not run out of resources.
+To start a new server, create a `WebsocketServer` with optional `WebSocketServerOptions`. By default this will start a selfhosted server on port 80, by setting the `Prefix` and `Port` options you can specify on what port and what prefix this server will listen. The default prefix is `/`. ItÂ’s recommended to set the `MaxClients` to make sure the server does not run out of resources.
 
-If you want to host a webapp to interact with the websocket server, it’s best to intergrate the websocket server directly with nanoFramework WebServer or HttpListner. To do this set the option `IsStandAlone` to `false`. 
+If you want to host a webapp to interact with the websocket server, itÂ’s best to intergrate the websocket server directly with nanoFramework WebServer or HttpListner. To do this set the option `IsStandAlone` to `false`. 
 
 To start the websocket server simply call `Start`.
 
@@ -154,10 +154,10 @@ When a client connection is closed the `WebsocketClosed` event is called again c
 You can close a specific client connection by calling `DisconnectClient`. You need to specify what client you want to disconnect by providing the client endpoint. Also you need to specify an appropriate `WebSocketCloseStatus`.
 
 ### Receiving messages
-When a message from any client is received the `MessageReceived` is raised. Please see the Client section “Receiving Messages” and “Message Frame” on howto handle messages. The client who send the message can be identified by checking `Endpoint` property of the `MessageFrame`.  
+When a message from any client is received the `MessageReceived` is raised. Please see the Client section Â“Receiving MessagesÂ” and Â“Message FrameÂ” on howto handle messages. The client who send the message can be identified by checking `Endpoint` property of the `MessageFrame`.  
 
 ### Sending messages
-It’s possible to send a messages to a specific client by calling `SendString` for a text message or `SendData` for sending a binary message using a byte array. You need to specify the specific client `EndPoint` that you want to send the message to. If you want to send a message to all clients you can simply use `Broadcast` and provide a byte array or a string. 
+ItÂ’s possible to send a messages to a specific client by calling `SendString` for a text message or `SendData` for sending a binary message using a byte array. You need to specify the specific client `EndPoint` that you want to send the message to. If you want to send a message to all clients you can simply use `Broadcast` and provide a byte array or a string. 
 
 ### Stopping the server
 You can stop the websocket server by calling `Stop`.
