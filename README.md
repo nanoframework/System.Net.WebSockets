@@ -130,7 +130,8 @@ wsServer.MessageReceived += WsServer_MessageReceived;
 wsServer.Start();
 ```
 
-### Handling Client Connections
+#### Handling client connections
+
 When the websocket server is selfhosted the client connections are handled automatically and added to the websocket server client pool. You can check the number of connected clients with `ClientsCount`. Calling `ListClients` will return an array of all Ip Endpoints of the connected clients. 
 
 When using nanoFramework HttpListner or WebServer you can upgrade a websocket request by passing the `HttpListnerContext` to the websocket server by calling `AddWebSocket`. If the connection is successful established `AddWebsocket` will return `true`. 
