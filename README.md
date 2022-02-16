@@ -161,7 +161,8 @@ When a message from any client is received the `MessageReceived` is raised. Plea
 
 Its possible to send a messages to a specific client by calling `SendString` for a text message or `SendData` for sending a binary message using a byte array. You need to specify the specific client `EndPoint` that you want to send the message to. If you want to send a message to all clients you can simply use `Broadcast` and provide a byte array or a string. 
 
-### Stopping the server
+#### Stopping the server
+
 You can stop the websocket server by calling `Stop`.
 
 
