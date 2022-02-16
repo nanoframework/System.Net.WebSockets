@@ -23,7 +23,7 @@ This API mirrors (as close as possible) the official .NET [System.Net.WebSockets
 
 This is a Websocket Client and Server library for .NET nanoFramework. Websockets are mainly used for creating interactive web apps that require a constant connection with the webserver. In the Internet of Things domain, some protocols require a WebSocket connection, like SignalR. Some IoT servers also support or require protocols like MQTT to run over websockets.  
 
-## Client
+### Client
 
 ### Connect to a websocket server
 To connect to a websocket server, create a `ClientWebsocket`. You can set extra websocket options by adding `ClientWebSocketOptions` upon initialization. These options can be used to set specific SSL options, change keep alive interval, server timeout and set maximum send and receive message size. 
