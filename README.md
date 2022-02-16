@@ -96,7 +96,7 @@ Messages can be received by setting an event handler for `MessageReceived`. This
 
 Websockets `MessageReceivedFrame` support two types of messages: `Text` and `Binary`. The property `MessageType` tells what type of message is received. `EndPoint` contains the IPEndPoind of the message sender. The `Buffer` contains the actual information that was send. 
 
-> Note: To be able to receive fragmented messages the user needs to implement there own logic. By checking IsFragmented you are able to see if youre dealing with a fragmented message. The property Fragmentation tells if you are dealing with the begin, middle or end fragment of a message. 
+> Note: To be able to receive fragmented messages the user needs to implement there own logic. By checking IsFragmented you are able to see if you're dealing with a fragmented message. The property Fragmentation tells if you are dealing with the begin, middle or end fragment of a message. 
 
 #### Send messages
 
@@ -114,12 +114,11 @@ The server shares a common websocket base with the Client implementation.
  
 #### Creating a server
 
-To start a new server, create a `WebsocketServer` with optional `WebSocketServerOptions`. By default this will start a selfhosted server on port 80, by setting the `Prefix` and `Port` options you can specify on what port and what prefix this server will listen. The default prefix is `/`. Its recommended to set the `MaxClients` to make sure the server does not run out of resources.
+To start a new server, create a `WebsocketServer` with optional `WebSocketServerOptions`. By default this will start a selfhosted server on port 80, by setting the `Prefix` and `Port` options you can specify on what port and what prefix this server will listen. The default prefix is `/`. It's recommended to set the `MaxClients` to make sure the server does not run out of resources.
 
-If you want to host a webapp to interact with the websocket server, its best to intergrate the websocket server directly with nanoFramework WebServer or HttpListner. To do this set the option `IsStandAlone` to `false`. 
+If you want to host a webapp to interact with the websocket server, it's best to integrate the websocket server directly with .NET nanoFramework [HttpListner](https://github.com/nanoframework/System.Net.Http/blob/develop/nanoFramework.System.Net.Http/Http/System.Net.HttpListener.cs) or [WebServer](https://github.com/nanoframework/nanoFramework.WebServer). To do this set the option `IsStandAlone` to `false`. 
 
 To start the websocket server simply call `Start`.
-
 
 ```csharp
 WebSocketServer wsServer = new WebSocketServer(new WebSocketServerOptions() { 
@@ -168,16 +167,15 @@ You can close a specific client connection by calling `DisconnectClient`. You ne
 
 #### Receiving messages
 
-When a message from any client is received the `MessageReceived` is raised. Please see the Client section Receiving Messages and Message Frame on howto handle messages. The client who send the message can be identified by checking `Endpoint` property of the `MessageFrame`.  
+When a message from any client is received the `MessageReceived` is raised. Please see the Client section [Receiving Messages](#receiving_messages) and [Message Frame](#message_frame) on how to handle messages. The client who send the message can be identified by checking `Endpoint` property of the `MessageFrame`.  
 
 #### Sending messages
 
-Its possible to send a messages to a specific client by calling `SendString` for a text message or `SendData` for sending a binary message using a byte array. You need to specify the specific client `EndPoint` that you want to send the message to. If you want to send a message to all clients you can simply use `Broadcast` and provide a byte array or a string. 
+It's possible to send a messages to a specific client by calling `SendString` for a text message or `SendData` for sending a binary message using a byte array. You need to specify the specific client `EndPoint` that you want to send the message to. If you want to send a message to all clients you can simply use `Broadcast` and provide a byte array or a string. 
 
 #### Stopping the server
 
 You can stop the websocket server by calling `Stop`.
-
 
 ## Feedback and documentation
 
