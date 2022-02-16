@@ -19,7 +19,8 @@ This API mirrors (as close as possible) the official .NET [System.Net.WebSockets
 | System.Net.WebSockets.Server | [![Build Status](https://dev.azure.com/nanoframework/System.Net.Websockets/_apis/build/status/nanoframework.nanoframework.System.Net.Websockets?branchName=main)](https://dev.azure.com/nanoframework/System.Net.Websockets/_build/latest?definitionId=70&branchName=main) | [![NuGet](https://img.shields.io/nuget/v/nanoFramework.System.Net.WebSockets.Server.svg?label=NuGet&style=flat&logo=nuget)](https://www.nuget.org/packages/nanoFramework.System.Net.WebSockets.Server/) |
 | System.Net.WebSockets.Server (preview) |[![Build Status](https://dev.azure.com/nanoframework/System.Net.Websockets/_apis/build/status/nanoframework.nanoframework.System.Net.Websockets?branchName=develop)](https://dev.azure.com/nanoframework/System.Net.Websockets/_build/latest?definitionId=70&branchName=develop) | [![NuGet](https://img.shields.io/nuget/vpre/nanoFramework.System.Net.WebSockets.Server.svg?label=NuGet&style=flat&logo=nuget)](https://www.nuget.org/packages/nanoFramework.System.Net.WebSockets.Server/) |
 
-# Usage
+## Usage
+
 This is a Websocket Client and Server library for .NET nanoFramework. Websockets are mainly used for creating interactive web apps that require a constant connection with the webserver. In the Internet of Things domain, some protocols require a WebSocket connection, like SignalR. Some IoT servers also support or require protocols like MQTT to run over websockets.  
 
 ## Client
