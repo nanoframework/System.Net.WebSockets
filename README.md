@@ -112,7 +112,8 @@ Whenever a connection is closed the event `Closed` is fired.
 The `WebSocketServer` is a websocket host for .NET nanoFramework that can handle multiple websocket connections. The server can be run stand alone or be integrated with the nanoFramework [HttpListner](https://github.com/nanoframework/System.Net.Http/blob/develop/nanoFramework.System.Net.Http/Http/System.Net.HttpListener.cs) or [WebServer](https://github.com/nanoframework/nanoFramework.WebServer). 
 The server shares a common websocket base with the Client implementation. 
  
-### Creating a Server
+#### Creating a server
+
 To start a new server, create a `WebsocketServer` with optional `WebSocketServerOptions`. By default this will start a selfhosted server on port 80, by setting the `Prefix` and `Port` options you can specify on what port and what prefix this server will listen. The default prefix is `/`. Its recommended to set the `MaxClients` to make sure the server does not run out of resources.
 
 If you want to host a webapp to interact with the websocket server, its best to intergrate the websocket server directly with nanoFramework WebServer or HttpListner. To do this set the option `IsStandAlone` to `false`. 
