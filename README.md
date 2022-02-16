@@ -88,7 +88,8 @@ namespace NFWebsocketTestClient
 
 The connection state can be monitored by checking the ClientWebSocket `State`. After the connection is established the state is set to `Open`. The client is only able to send messages if  the state is Open. 
 
-### Receiving Messages
+#### Receiving messages
+
 Messages can be received by setting an event handler for `MessageReceived`. This handler will be called every time a message is received. The  `MesageReceivedArguments` contains the `MessageReceivedFrame` with a buffer containing the message.  
 
 ##### Message Frame
