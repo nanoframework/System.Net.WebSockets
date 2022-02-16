@@ -98,7 +98,8 @@ Websockets `MessageReceivedFrame` support two types of messages: `Text` and `Bin
 
 > Note: To be able to receive fragmented messages the user needs to implement there own logic. By checking IsFragmented you are able to see if youre dealing with a fragmented message. The property Fragmentation tells if you are dealing with the begin, middle or end fragment of a message. 
 
-### Send Messages
+#### Send messages
+
 A message can be send by calling `SendString` for a text message or `SendBytes` for sending a binary message using a byte array. You can also call `Send` that takes a byte array and a `MessageType` as arguments. 
 
 ### Connection Close
