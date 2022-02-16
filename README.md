@@ -92,7 +92,8 @@ The connection state can be monitored by checking the ClientWebSocket `State`. A
 
 Messages can be received by setting an event handler for `MessageReceived`. This handler will be called every time a message is received. The  `MesageReceivedArguments` contains the `MessageReceivedFrame` with a buffer containing the message.  
 
-##### Message Frame
+##### Message frame
+
 Websockets `MessageReceivedFrame` support two types of messages: `Text` and `Binary`. The property `MessageType` tells what type of message is received. `EndPoint` contains the IPEndPoind of the message sender. The `Buffer` contains the actual information that was send. 
 
 > Note: To be able to receive fragmented messages the user needs to implement there own logic. By checking IsFragmented you are able to see if youre dealing with a fragmented message. The property Fragmentation tells if you are dealing with the begin, middle or end fragment of a message. 
