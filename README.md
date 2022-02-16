@@ -157,6 +157,7 @@ private static void WebServer_CommandReceived(object obj, WebServerEventArgs e)
 When a client is connected the `WebsocketOpened` event is called. The `WebserverEventArgs` contains the endpoint of the client.
 
 ##### Handling connection closed
+
 When a client connection is closed the `WebsocketClosed` event is called again containing the endpoint in the `webserverEventArgs`. 
 
 #### Closing a client connection
