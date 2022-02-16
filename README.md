@@ -162,7 +162,8 @@ When a client connection is closed the `WebsocketClosed` event is called again c
 ### Closing a Client Connection
 You can close a specific client connection by calling `DisconnectClient`. You need to specify what client you want to disconnect by providing the client endpoint. Also you need to specify an appropriate `WebSocketCloseStatus`.
 
-### Receiving messages
+#### Receiving messages
+
 When a message from any client is received the `MessageReceived` is raised. Please see the Client section Receiving Messages and Message Frame on howto handle messages. The client who send the message can be identified by checking `Endpoint` property of the `MessageFrame`.  
 
 #### Sending messages
