@@ -109,7 +109,7 @@ Whenever a connection is closed the event `Closed` is fired.
 
 ### Server
 
-The `WebSocketServer` is a websocket host for nanoFramework that can handle multiple websocket connections. The server can be run stand alone or be integrated with the nanoFramework HttpListner or WebServer. 
+The `WebSocketServer` is a websocket host for .NET nanoFramework that can handle multiple websocket connections. The server can be run stand alone or be integrated with the nanoFramework [HttpListner](https://github.com/nanoframework/System.Net.Http/blob/develop/nanoFramework.System.Net.Http/Http/System.Net.HttpListener.cs) or [WebServer](https://github.com/nanoframework/nanoFramework.WebServer). 
 The server shares a common websocket base with the Client implementation. 
  
 ### Creating a Server
