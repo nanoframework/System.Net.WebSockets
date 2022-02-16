@@ -25,7 +25,8 @@ This is a Websocket Client and Server library for .NET nanoFramework. Websockets
 
 ### Client
 
-### Connect to a websocket server
+#### Connect to a websocket server
+
 To connect to a websocket server, create a `ClientWebsocket`. You can set extra websocket options by adding `ClientWebSocketOptions` upon initialization. These options can be used to set specific SSL options, change keep alive interval, server timeout and set maximum send and receive message size. 
 You can start the connection by calling `Connect` with the uri of the websocket server. A websocket location always begins with `ws://` or `wss://`. You can use the optional `ClientWebSocketHeaders` to set specific headers. 
 
