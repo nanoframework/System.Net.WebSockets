@@ -102,7 +102,8 @@ Websockets `MessageReceivedFrame` support two types of messages: `Text` and `Bin
 
 A message can be send by calling `SendString` for a text message or `SendBytes` for sending a binary message using a byte array. You can also call `Send` that takes a byte array and a `MessageType` as arguments. 
 
-### Connection Close
+#### Closing a connection
+
 The connection can be closed by calling `Close`. Calling this method will send a closing message over the line. You can optional specify a `WebSocketCloseStatus` and description on the reason for closing for debugging purposes. 
 Whenever a connection is closed the event `Closed` is fired.  
 
