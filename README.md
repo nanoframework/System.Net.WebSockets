@@ -159,7 +159,8 @@ When a client is connected the `WebsocketOpened` event is called. The `Webserver
 ##### Handling connection closed
 When a client connection is closed the `WebsocketClosed` event is called again containing the endpoint in the `webserverEventArgs`. 
 
-### Closing a Client Connection
+#### Closing a client connection
+
 You can close a specific client connection by calling `DisconnectClient`. You need to specify what client you want to disconnect by providing the client endpoint. Also you need to specify an appropriate `WebSocketCloseStatus`.
 
 #### Receiving messages
