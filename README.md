@@ -106,7 +106,8 @@ A message can be send by calling `SendString` for a text message or `SendBytes` 
 The connection can be closed by calling `Close`. Calling this method will send a closing message over the line. You can optional specify a `WebSocketCloseStatus` and description on the reason for closing for debugging purposes. 
 Whenever a connection is closed the event `Closed` is fired.  
 
-## Server
+### Server
+
 The `WebSocketServer` is a websocket host for nanoFramework that can handle multiple websocket connections. The server can be run stand alone or be integrated with the nanoFramework HttpListner or WebServer. 
 The server shares a common websocket base with the Client implementation. 
  
