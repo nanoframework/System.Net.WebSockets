@@ -135,7 +135,7 @@ wsServer.Start();
 
 When the websocket server is selfhosted the client connections are handled automatically and added to the websocket server client pool. You can check the number of connected clients with `ClientsCount`. Calling `ListClients` will return an array of all Ip Endpoints of the connected clients. 
 
-When using nanoFramework HttpListner or WebServer you can upgrade a websocket request by passing the `HttpListnerContext` to the websocket server by calling `AddWebSocket`. If the connection is successful established `AddWebsocket` will return `true`. 
+When using .NET nanoFramework [HttpListner](https://github.com/nanoframework/System.Net.Http/blob/develop/nanoFramework.System.Net.Http/Http/System.Net.HttpListener.cs) or [WebServer](https://github.com/nanoframework/nanoFramework.WebServer) you can upgrade a websocket request by passing the `HttpListnerContext` to the websocket server by calling `AddWebSocket`. If the connection is successful established `AddWebsocket` will return `true`. 
 
 ```csharp
 //webserver receive message event handler
