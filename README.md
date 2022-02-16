@@ -157,7 +157,8 @@ You can close a specific client connection by calling `DisconnectClient`. You ne
 ### Receiving messages
 When a message from any client is received the `MessageReceived` is raised. Please see the Client section Receiving Messages and Message Frame on howto handle messages. The client who send the message can be identified by checking `Endpoint` property of the `MessageFrame`.  
 
-### Sending messages
+#### Sending messages
+
 Its possible to send a messages to a specific client by calling `SendString` for a text message or `SendData` for sending a binary message using a byte array. You need to specify the specific client `EndPoint` that you want to send the message to. If you want to send a message to all clients you can simply use `Broadcast` and provide a byte array or a string. 
 
 ### Stopping the server
