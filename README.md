@@ -19,6 +19,20 @@ This API mirrors (as close as possible) the official .NET [System.Net.WebSockets
 | System.Net.WebSockets.Server | [![Build Status](https://dev.azure.com/nanoframework/System.Net.Websockets/_apis/build/status/nanoframework.nanoframework.System.Net.Websockets?branchName=main)](https://dev.azure.com/nanoframework/System.Net.Websockets/_build/latest?definitionId=70&branchName=main) | [![NuGet](https://img.shields.io/nuget/v/nanoFramework.System.Net.WebSockets.Server.svg?label=NuGet&style=flat&logo=nuget)](https://www.nuget.org/packages/nanoFramework.System.Net.WebSockets.Server/) |
 | System.Net.WebSockets.Server (preview) |[![Build Status](https://dev.azure.com/nanoframework/System.Net.Websockets/_apis/build/status/nanoframework.nanoframework.System.Net.Websockets?branchName=develop)](https://dev.azure.com/nanoframework/System.Net.Websockets/_build/latest?definitionId=70&branchName=develop) | [![NuGet](https://img.shields.io/nuget/vpre/nanoFramework.System.Net.WebSockets.Server.svg?label=NuGet&style=flat&logo=nuget)](https://www.nuget.org/packages/nanoFramework.System.Net.WebSockets.Server/) |
 
+## Samples
+
+### WebSockets Server Sample 
+
+[Server.RgbSample](https://github.com/nanoframework/Samples/tree/main/samples/WebSockets/WebSockets.Server.RgbSample) shows howto use Websocket Server with a Webserver hosting a WebApp that controlls the rgb led on an Atom Lite ESP32.
+
+### WebSockets Client Sample 
+
+[Client.Sample](https://github.com/nanoframework/Samples/tree/main/samples/WebSockets/Websockets.ServerClient.Sample) shows how to use the Websocket Client.
+
+### WebSockets Server and Client sample 
+
+[ServerClient.Sample](https://github.com/nanoframework/Samples/tree/main/samples/WebSockets/Websockets.ServerClient.Sample) shows how to configure and start a WebSocket Server and (ssl) Client.
+
 ## Usage
 
 This is a Websocket Client and Server library for .NET nanoFramework. Websockets are mainly used for creating interactive web apps that require a constant connection with the webserver. In the Internet of Things domain, some protocols require a WebSocket connection, like SignalR. Some IoT servers also support or require protocols like MQTT to run over websockets.  
@@ -96,7 +110,7 @@ Messages can be received by setting an event handler for `MessageReceived`. This
 
 Websockets `MessageReceivedFrame` support two types of messages: `Text` and `Binary`. The property `MessageType` tells what type of message is received. `EndPoint` contains the IPEndPoind of the message sender. The `Buffer` contains the actual information that was send. 
 
-> Note: To be able to receive fragmented messages the user needs to implement there own logic. By checking IsFragmented you are able to see if you're dealing with a fragmented message. The property Fragmentation tells if you are dealing with the begin, middle or end fragment of a message. 
+> Note: To be able to receive fragmented messages the user needs to implement there own logic. By checking IsFragmented you are able to see if you're dealing with a fragmented message. The property Fragmentation tells if you are dealing with the begin, middle or end fragment of a message. 
 
 #### Send messages
 
@@ -114,7 +128,7 @@ The server shares a common websocket base with the Client implementation.
  
 #### Creating a server
 
-To start a new server, create a `WebsocketServer` with optional `WebSocketServerOptions`. By default this will start a selfhosted server on port 80, by setting the `Prefix` and `Port` options you can specify on what port and what prefix this server will listen. The default prefix is `/`. It's recommended to set the `MaxClients` to make sure the server does not run out of resources.
+To start a new server, create a `WebsocketServer` with optional `WebSocketServerOptions`. By default this will start a selfhosted server on port 80, by setting the `Prefix` and `Port` options you can specify on what port and what prefix this server will listen. The default prefix is `/`. It's recommended to set the `MaxClients` to make sure the server does not run out of resources.
 
 If you want to host a webapp to interact with the websocket server, it's best to integrate the websocket server directly with .NET nanoFramework [HttpListner](https://github.com/nanoframework/System.Net.Http/blob/develop/nanoFramework.System.Net.Http/Http/System.Net.HttpListener.cs) or [WebServer](https://github.com/nanoframework/nanoFramework.WebServer). To do this set the option `IsStandAlone` to `false`. 
 
@@ -171,7 +185,7 @@ When a message from any client is received the `MessageReceived` is raised. Plea
 
 #### Sending messages
 
-It's possible to send a messages to a specific client by calling `SendString` for a text message or `SendData` for sending a binary message using a byte array. You need to specify the specific client `EndPoint` that you want to send the message to. If you want to send a message to all clients you can simply use `Broadcast` and provide a byte array or a string. 
+It's possible to send a messages to a specific client by calling `SendString` for a text message or `SendData` for sending a binary message using a byte array. You need to specify the specific client `EndPoint` that you want to send the message to. If you want to send a message to all clients you can simply use `Broadcast` and provide a byte array or a string. 
 
 #### Stopping the server
 
