@@ -22,9 +22,9 @@ There are also two other packages, one with the client API only and another with
       <dependency id="nanoFramework.CoreLibrary" version="1.12.0-preview.18" />
       <dependency id="nanoFramework.Runtime.Events" version="1.10.0-preview.11" />
       <dependency id="nanoFramework.System.Collections" version="1.4.0-preview.24" />
-      <dependency id="nanoFramework.System.Net" version="1.8.0-preview.35" />
+      <dependency id="nanoFramework.System.Net" version="1.8.0-preview.39" />
       <dependency id="nanoFramework.System.Text" version="1.1.3-preview.13" />
-      <dependency id="nanoFramework.System.Net.Http" version="1.4.0-preview.40" />
+      <dependency id="nanoFramework.System.Net.Http" version="1.4.0-preview.41" />
       <dependency id="nanoFramework.System.Threading" version="1.0.4-preview.14" />
     </dependencies>
   </metadata>
