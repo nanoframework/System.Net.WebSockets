@@ -19,10 +19,10 @@
 There are also two other packages, one with the server API only and another with the complete API.</description>
     <tags>nanoFramework C# csharp netmf netnf WebSockets</tags>
     <dependencies>
-      <dependency id="nanoFramework.CoreLibrary" version="1.12.0-preview.18" />
-      <dependency id="nanoFramework.Runtime.Events" version="1.10.0-preview.11" />
-      <dependency id="nanoFramework.System.Collections" version="1.4.0-preview.24" />
-      <dependency id="nanoFramework.System.Net" version="1.8.0-preview.39" />
+      <dependency id="nanoFramework.CoreLibrary" version="1.12.0-preview.19" />
+      <dependency id="nanoFramework.Runtime.Events" version="1.10.0-preview.13" />
+      <dependency id="nanoFramework.System.Collections" version="1.4.0-preview.27" />
+      <dependency id="nanoFramework.System.Net" version="1.8.0-preview.43" />
       <dependency id="nanoFramework.System.Text" version="1.1.3-preview.13" />
       <dependency id="nanoFramework.System.Threading" version="1.0.4-preview.14" />
     </dependencies>
