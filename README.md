@@ -17,6 +17,12 @@
 | System.Net.WebSockets.Server | [![Build Status](https://dev.azure.com/nanoframework/System.Net.Websockets/_apis/build/status/nanoframework.nanoframework.System.Net.Websockets?branchName=main)](https://dev.azure.com/nanoframework/System.Net.Websockets/_build/latest?definitionId=70&branchName=main) | [![NuGet](https://img.shields.io/nuget/v/nanoFramework.System.Net.WebSockets.Server.svg?label=NuGet&style=flat&logo=nuget)](https://www.nuget.org/packages/nanoFramework.System.Net.WebSockets.Server/) |
 | System.Net.WebSockets.Server (preview) |[![Build Status](https://dev.azure.com/nanoframework/System.Net.Websockets/_apis/build/status/nanoframework.nanoframework.System.Net.Websockets?branchName=develop)](https://dev.azure.com/nanoframework/System.Net.Websockets/_build/latest?definitionId=70&branchName=develop) | [![NuGet](https://img.shields.io/nuget/vpre/nanoFramework.System.Net.WebSockets.Server.svg?label=NuGet&style=flat&logo=nuget)](https://www.nuget.org/packages/nanoFramework.System.Net.WebSockets.Server/) |
 
+## See it in action
+
+You can watch this video from the Microsoft [Microsoft IoT Developers](https://www.youtube.com/c/MicrosoftIoTDevelopers/featured) featuring the Websocket Server with .NET nanoFramework
+
+[![Microsoft IoT Developers](https://img.youtube.com/vi/l0SFVOs-bas/0.jpg)](https://youtu.be/l0SFVOs-bas)
+
 ## Samples
 
 ### WebSockets Server Sample 
