@@ -6,6 +6,7 @@
 
 **Documentation and other chores:**
 
+- Update 1 NuGet dependencies [\#71](https://github.com/nanoframework/System.Net.WebSockets/pull/71)
 - Update 1 NuGet dependencies [\#70](https://github.com/nanoframework/System.Net.WebSockets/pull/70)
 
 ## [v1.0.1](https://github.com/nanoframework/System.Net.WebSockets/tree/v1.0.1) (2022-03-29)
