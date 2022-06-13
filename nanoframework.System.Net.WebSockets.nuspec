@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>nanoFramework.System.Net.WebSockets</id>
@@ -21,8 +21,7 @@ These are meant to be used when there is the need to use smaller assemblies.</de
     <tags>nanoFramework C# csharp netmf netnf WebSockets</tags>
     <dependencies>
       <dependency id="nanoFramework.CoreLibrary" version="1.12.0" />
-      <dependency id="nanoFramework.System.Collections" version="1.4.0" />
-      <dependency id="nanoFramework.System.Net.Http" version="1.4.0.21" />
+      <dependency id="nanoFramework.System.Net.Http" version="1.4.0.23" />
     </dependencies>
   </metadata>
   <files>
