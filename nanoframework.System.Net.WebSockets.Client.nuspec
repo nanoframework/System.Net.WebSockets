@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>nanoFramework.System.Net.WebSockets.Client</id>
@@ -21,7 +21,7 @@ There are also two other packages, one with the server API only and another with
     <dependencies>
       <dependency id="nanoFramework.CoreLibrary" version="1.12.0" />
       <dependency id="nanoFramework.System.Collections" version="1.4.0" />
-      <dependency id="nanoFramework.System.Net" version="1.9.0.8" />
+      <dependency id="nanoFramework.System.Net" version="1.10.6" />
     </dependencies>
   </metadata>
   <files>
