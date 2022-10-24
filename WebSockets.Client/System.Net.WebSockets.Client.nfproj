@@ -17,6 +17,8 @@
     <AssemblyName>System.Net.WebSockets</AssemblyName>
     <TargetFrameworkVersion>v1.0</TargetFrameworkVersion>
     <DocumentationFile>bin\$(Configuration)\System.Net.WebSockets.xml</DocumentationFile>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <RestoreLockedMode Condition="'$(TF_BUILD)' == 'True' or '$(ContinuousIntegrationBuild)' == 'True'">true</RestoreLockedMode>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
