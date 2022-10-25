@@ -21,7 +21,7 @@ There are also two other packages, one with the server API only and another with
     <dependencies>
       <dependency id="nanoFramework.CoreLibrary" version="1.12.0" />
       <dependency id="nanoFramework.System.Collections" version="1.4.0" />
-      <dependency id="nanoFramework.System.Net" version="1.10.30" />
+      <dependency id="nanoFramework.System.Net" version="1.10.34" />
     </dependencies>
   </metadata>
   <files>
