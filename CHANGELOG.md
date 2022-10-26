@@ -2,7 +2,15 @@
 
 ## [**Changes available only in 'Preview' NuGet packages:**](https://github.com/nanoframework/System.Net.WebSockets/tree/HEAD)
 
-[Full Changelog](https://github.com/nanoframework/System.Net.WebSockets/compare/v1.1.33...HEAD)
+[Full Changelog](https://github.com/nanoframework/System.Net.WebSockets/compare/v1.1.35...HEAD)
+
+**Documentation and other chores:**
+
+- Update 1 NuGet dependencies [\#115](https://github.com/nanoframework/System.Net.WebSockets/pull/115)
+
+## [v1.1.35](https://github.com/nanoframework/System.Net.WebSockets/tree/v1.1.35) (2022-10-26)
+
+[Full Changelog](https://github.com/nanoframework/System.Net.WebSockets/compare/v1.1.33...v1.1.35)
 
 **Documentation and other chores:**
 
