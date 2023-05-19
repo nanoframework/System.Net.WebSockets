@@ -18,12 +18,12 @@ namespace System.Net.WebSockets
         /// Gets or sets the TLS/SSL protocol used by the <see cref="WebSocket"/> class.
         /// </summary>
         /// <value>
-        /// One of the values defined in the <see cref="SslProtocols"/> enumeration.
+        /// One of the values defined in the <see cref="SslProtocols"/> enumeration. Default is <see cref="SslProtocols.Tls12"/>.
         /// </value>
         /// <remarks>
-        /// This property is specific to nanoFramework. There is no equivalent in the .NET API.
+        /// This property is specific to .NET nanoFramework. There is no equivalent in the .NET API.
         /// </remarks>
-        public SslProtocols SslProtocol { get; set; }
+        public SslProtocols SslProtocol { get; set; } = SslProtocols.Tls12;
 
         /// <summary>
         /// Option for SSL verification.
