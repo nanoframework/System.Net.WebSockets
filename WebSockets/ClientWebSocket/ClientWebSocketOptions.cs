@@ -27,9 +27,9 @@ namespace System.Net.WebSockets
 
         /// <summary>
         /// Option for SSL verification.
-        /// The default behavior is <see cref="SslVerification.NoVerification"/>.
+        /// The default behavior is <see cref="SslVerification.CertificateRequired"/>.
         /// </summary>
-        public SslVerification SslVerification { get; set; } = SslVerification.NoVerification;
+        public SslVerification SslVerification { get; set; } = SslVerification.CertificateRequired;
 
         /// <summary>
         /// Gets or sets a collection of client side certificate. This certificate will automatically be used when connecting to a wss:// server 
