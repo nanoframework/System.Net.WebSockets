@@ -2,7 +2,21 @@
 
 ## [**Changes available only in 'Preview' NuGet packages:**](https://github.com/nanoframework/System.Net.WebSockets/tree/HEAD)
 
-[Full Changelog](https://github.com/nanoframework/System.Net.WebSockets/compare/v1.1.50...HEAD)
+[Full Changelog](https://github.com/nanoframework/System.Net.WebSockets/compare/v1.1.52...HEAD)
+
+**Implemented enhancements:**
+
+- Default SSL protocol for Client WebSocketOptions is now TLS1.2 [\#134](https://github.com/nanoframework/System.Net.WebSockets/pull/134)
+- Default SslVerification is now CertificateRequired [\#133](https://github.com/nanoframework/System.Net.WebSockets/pull/133)
+
+**Documentation and other chores:**
+
+- Update 1 NuGet dependencies [\#132](https://github.com/nanoframework/System.Net.WebSockets/pull/132)
+- Update 1 NuGet dependencies [\#131](https://github.com/nanoframework/System.Net.WebSockets/pull/131)
+
+## [v1.1.52](https://github.com/nanoframework/System.Net.WebSockets/tree/v1.1.52) (2023-02-17)
+
+[Full Changelog](https://github.com/nanoframework/System.Net.WebSockets/compare/v1.1.50...v1.1.52)
 
 **Documentation and other chores:**
 
