@@ -21,22 +21,6 @@ namespace System.Net.WebSockets
             return returnBytes;
         }
 
-        public static IDictionary ParseHeaders(string handshake)
-        {
-            var headers = handshake.Split(new char[] { '\r', '\n' });
-            IDictionary dic = new Hashtable();
-            foreach (string header in headers)
-            {
-                var keyVal = header.Split(':');
-                if (keyVal.Length == 2)
-                {
-                    dic[keyVal[0].Trim().ToLower()] = keyVal[1].Trim();
-                }
-            }
-
-            return dic;
-        }
-
         private static uint SHA1RotateLeft(uint x, int n)
         {
             return ((x << n) | (x >> (32 - n)));
