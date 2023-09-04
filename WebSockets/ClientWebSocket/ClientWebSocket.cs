@@ -297,6 +297,18 @@ namespace System.Net.WebSockets
             byte[] buffer = new byte[200];
             int index = 0;
 
+            void Append(int i)
+            {
+                buffer[index++] = (byte)i;
+                
+                if (index >= buffer.Length)
+                {
+                    var newBuffer = new byte[buffer.Length * 2];
+                    buffer.CopyTo(newBuffer, 0);
+                    buffer = newBuffer;
+                }
+            }
+            
             int b;
             while ((b = _networkStream.ReadByte()) != -1)
             {
@@ -307,21 +319,10 @@ namespace System.Net.WebSockets
                     {
                         return Encoding.UTF8.GetString(buffer, 0, index);
                     }
-                    buffer[index++] = (byte)'\r';
-                    if (index >= buffer.Length)
-                    {
-                        var newBuffer = new byte[buffer.Length * 2];
-                        buffer.CopyTo(newBuffer, 0);
-                        buffer = newBuffer;
-                    }
+                    Append('\r');
                 }
-                buffer[index++] = (byte)b;
-                if (index >= buffer.Length)
-                {
-                    var newBuffer = new byte[buffer.Length * 2];
-                    buffer.CopyTo(newBuffer, 0);
-                    buffer = newBuffer;
-                }
+
+                Append(b);
             }
 
             return null;
