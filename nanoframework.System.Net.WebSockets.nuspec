@@ -21,7 +21,7 @@ These are meant to be used when there is the need to use smaller assemblies.</de
     <tags>nanoFramework C# csharp netmf netnf WebSockets</tags>
     <dependencies>
       <dependency id="nanoFramework.CoreLibrary" version="1.14.2" />
-      <dependency id="nanoFramework.System.Net.Http" version="1.5.84" />
+      <dependency id="nanoFramework.System.Net.Http" version="1.5.99" />
     </dependencies>
   </metadata>
   <files>
