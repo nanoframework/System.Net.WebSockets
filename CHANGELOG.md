@@ -2,7 +2,15 @@
 
 ## [**Changes available only in 'Preview' NuGet packages:**](https://github.com/nanoframework/System.Net.WebSockets/tree/HEAD)
 
-[Full Changelog](https://github.com/nanoframework/System.Net.WebSockets/compare/v1.1.57...HEAD)
+[Full Changelog](https://github.com/nanoframework/System.Net.WebSockets/compare/v1.1.60...HEAD)
+
+**Fixed bugs:**
+
+- Read Headers line by line until an empty line is found [\#136](https://github.com/nanoframework/System.Net.WebSockets/pull/136)
+
+## [v1.1.60](https://github.com/nanoframework/System.Net.WebSockets/tree/v1.1.60) (2023-09-04)
+
+[Full Changelog](https://github.com/nanoframework/System.Net.WebSockets/compare/v1.1.57...v1.1.60)
 
 **Documentation and other chores:**
 
