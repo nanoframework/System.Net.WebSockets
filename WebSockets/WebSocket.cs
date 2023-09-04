@@ -138,10 +138,10 @@ namespace System.Net.WebSockets
             WebSocketReceiver = new WebSocketReceiver(stream, RemoteEndPoint, this, IsServer, MaxReceiveFrameSize, OnReadError);
             _webSocketSender = new WebSocketSender(stream, IsServer, OnWriteError);
 
+            State = WebSocketState.Open;
+
             ReceiveAndControllThread receiveThread = new ReceiveAndControllThread(this);
             new Thread(receiveThread.WorkerThread).Start();
-
-            State = WebSocketState.Open;
         }
 
         /// <summary>

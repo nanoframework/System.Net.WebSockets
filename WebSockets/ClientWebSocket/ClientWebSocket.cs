@@ -3,7 +3,9 @@
 // See LICENSE file in the project root for full license information.
 //
 
+using System.Collections;
 using System.Diagnostics;
+using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Net.WebSockets.WebSocketFrame;
@@ -238,7 +240,6 @@ namespace System.Net.WebSockets
 
             string beginHeader = ($"HTTP/1.1 101".ToLower());
             byte[] bufferStart = new byte[beginHeader.Length];
-            byte[] buffer = new byte[600];
 
             int bytesRead = _networkStream.Read(bufferStart, 0, bufferStart.Length);
 
@@ -246,23 +247,19 @@ namespace System.Net.WebSockets
 
             if (bytesRead == bufferStart.Length)
             {
-                if (Encoding.UTF8.GetString(bufferStart, 0, bufferStart.Length).ToLower() == beginHeader)
+                if (Encoding.UTF8.GetString(bufferStart, 0, bytesRead).ToLower() == beginHeader)
                 {
+                    IDictionary headers = ReadHeaders();
+
                     //right http request
-                    bytesRead = _networkStream.Read(buffer, 0, buffer.Length);
+                    string swka = swk + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+                    byte[] swkaSha1 = WebSocketHelpers.ComputeHash(swka);
+                    string swkaSha1Base64 = Convert.ToBase64String(swkaSha1);
 
-                    if (bytesRead > 20)
+                    if (((string)headers["connection"]).ToLower() == "upgrade" && ((string)headers["upgrade"]).ToLower() == "websocket" && (string)headers["sec-websocket-accept"] == swkaSha1Base64)
                     {
-                        var headers = WebSocketHelpers.ParseHeaders(Encoding.UTF8.GetString(buffer, 0, bytesRead));
-                        string swka = swk + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-                        byte[] swkaSha1 = WebSocketHelpers.ComputeHash(swka);
-                        string swkaSha1Base64 = Convert.ToBase64String(swkaSha1);
-
-                        if (((string)headers["connection"]).ToLower() == "upgrade" && ((string)headers["upgrade"]).ToLower() == "websocket" && (string)headers["sec-websocket-accept"] == swkaSha1Base64)
-                        {
-                            Debug.WriteLine("WebSocket Client connected");
-                            correctHandshake = true;
-                        }
+                        Debug.WriteLine("WebSocket Client connected");
+                        correctHandshake = true;
                     }
                 }
             }
@@ -276,9 +273,59 @@ namespace System.Net.WebSockets
             }
 
             ConnectToStream(_networkStream, false, _tcpSocket);
+        }
 
+        private IDictionary ReadHeaders()
+        {
+            IDictionary headers = new Hashtable();
 
+            string header;
+            while (!string.IsNullOrEmpty(header = ReadLine()))
+            {
+                var keyVal = header.Split(':');
+                if (keyVal.Length == 2)
+                {
+                    headers[keyVal[0].Trim().ToLower()] = keyVal[1].Trim();
+                }
+            }
 
+            return headers;
+        }
+
+        private string ReadLine()
+        {
+            byte[] buffer = new byte[200];
+            int index = 0;
+
+            void Append(int i)
+            {
+                buffer[index++] = (byte)i;
+                
+                if (index >= buffer.Length)
+                {
+                    var newBuffer = new byte[buffer.Length * 2];
+                    buffer.CopyTo(newBuffer, 0);
+                    buffer = newBuffer;
+                }
+            }
+            
+            int b;
+            while ((b = _networkStream.ReadByte()) != -1)
+            {
+                if (b == '\r')
+                {
+                    b = _networkStream.ReadByte();
+                    if (b == '\n')
+                    {
+                        return Encoding.UTF8.GetString(buffer, 0, index);
+                    }
+                    Append('\r');
+                }
+
+                Append(b);
+            }
+
+            return null;
         }
 
         /// <inheritdoc/>
