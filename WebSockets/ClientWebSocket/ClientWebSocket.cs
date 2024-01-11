@@ -308,13 +308,17 @@ namespace System.Net.WebSockets
                     buffer = newBuffer;
                 }
             }
-            
+
             int b;
             while ((b = _networkStream.ReadByte()) != -1)
             {
-                if (b == '\r')
+                if (b == '\r' || b == '\n')
                 {
-                    b = _networkStream.ReadByte();
+                    if (b == '\r')
+                    {
+                        b = _networkStream.ReadByte();
+                    }
+
                     if (b == '\n')
                     {
                         return Encoding.UTF8.GetString(buffer, 0, index);
