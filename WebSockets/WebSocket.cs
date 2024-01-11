@@ -309,7 +309,7 @@ namespace System.Net.WebSockets
             }
             catch (ObjectDisposedException e)
             {
-                Debug.WriteLine("socket could not be closed properly because it was already disposed");
+                Debug.WriteLine($"Socket could not be closed properly because it was already disposed: {e.Message}.");
             }
         }
 

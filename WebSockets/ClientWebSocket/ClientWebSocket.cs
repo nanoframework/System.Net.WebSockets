@@ -159,7 +159,7 @@ namespace System.Net.WebSockets
                     }
                     catch (Exception ex)
                     {
-                        throw new Exception("Something is wrong with the port number of the websocket url");
+                        throw new Exception($"Something is wrong with the port number of the websocket url: {ex.Message}.");
                     }
                 }
             }
@@ -169,8 +169,6 @@ namespace System.Net.WebSockets
 
             byte[] buffer = new byte[1024];
             _tcpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
-            NetworkStream stream = null;
 
             try
             {

@@ -142,7 +142,7 @@ namespace System.Net.WebSockets.Server
         /// Add a websocket client to the Websocket.
         /// After this the HttpListnerContext should be discarded!
         ///</summary>
-        ///<param name="context"> The HttpListnerContext
+        ///<param name="context"> The HttpListnerContext </param>
         public bool AddWebSocket(HttpListenerContext context)
         {
             //TODO check for limit number of clients. 
