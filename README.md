@@ -18,15 +18,15 @@ This API mirrors (as close as possible) the official .NET [System.Net.WebSockets
 
 ## Samples
 
-### WebSockets Server Sample 
+### WebSockets Server Sample
 
 [Server.RgbSample](https://github.com/nanoframework/Samples/tree/main/samples/WebSockets/WebSockets.Server.RgbSample) shows howto use Websocket Server with a Webserver hosting a WebApp that controlls the rgb led on an Atom Lite ESP32.
 
-### WebSockets Client Sample 
+### WebSockets Client Sample
 
 [Client.Sample](https://github.com/nanoframework/Samples/tree/main/samples/WebSockets/Websockets.ServerClient.Sample) shows how to use the Websocket Client.
 
-### WebSockets Server and Client sample 
+### WebSockets Server and Client sample
 
 [ServerClient.Sample](https://github.com/nanoframework/Samples/tree/main/samples/WebSockets/Websockets.ServerClient.Sample) shows how to configure and start a WebSocket Server and (ssl) Client.
 
@@ -99,7 +99,7 @@ namespace NFWebsocketTestClient
 
 The connection state can be monitored by checking the ClientWebSocket `State`. After the connection is established the state is set to `Open`. The client is only able to send messages if  the state is Open. 
 
-#### Receiving messages
+#### Receiving messages from server
 
 Messages can be received by setting an event handler for `MessageReceived`. This handler will be called every time a message is received. The  `MesageReceivedArguments` contains the `MessageReceivedFrame` with a buffer containing the message.  
 
@@ -122,7 +122,7 @@ Whenever a connection is closed the event `Closed` is fired.
 
 The `WebSocketServer` is a websocket host for .NET nanoFramework that can handle multiple websocket connections. The server can be run stand alone or be integrated with the nanoFramework [HttpListner](https://github.com/nanoframework/System.Net.Http/blob/develop/nanoFramework.System.Net.Http/Http/System.Net.HttpListener.cs) or [WebServer](https://github.com/nanoframework/nanoFramework.WebServer). 
 The server shares a common websocket base with the Client implementation. 
- 
+
 #### Creating a server
 
 To start a new server, create a `WebsocketServer` with optional `WebSocketServerOptions`. By default this will start a selfhosted server on port 80, by setting the `Prefix` and `Port` options you can specify on what port and what prefix this server will listen. The default prefix is `/`. It's recommended to set the `MaxClients` to make sure the server does not run out of resources.
@@ -176,7 +176,7 @@ When a client connection is closed the `WebsocketClosed` event is called again c
 
 You can close a specific client connection by calling `DisconnectClient`. You need to specify what client you want to disconnect by providing the client endpoint. Also you need to specify an appropriate `WebSocketCloseStatus`.
 
-#### Receiving messages
+#### Receiving messages from clients
 
 When a message from any client is received the `MessageReceived` is raised. Please see the Client section [Receiving Messages](#receiving_messages) and [Message Frame](#message_frame) on how to handle messages. The client who send the message can be identified by checking `Endpoint` property of the `MessageFrame`.  
 
@@ -207,6 +207,6 @@ The **nanoFramework** Class Libraries are licensed under the [MIT license](LICEN
 This project has adopted the code of conduct defined by the Contributor Covenant to clarify expected behaviour in our community.
 For more information see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct).
 
-### .NET Foundation
+## .NET Foundation
 
 This project is supported by the [.NET Foundation](https://dotnetfoundation.org).
