@@ -20,7 +20,7 @@ There are also two other packages with just the client API and just the server A
 These are meant to be used when there is the need to use smaller assemblies.</description>
     <tags>nanoFramework C# csharp netmf netnf WebSockets</tags>
     <dependencies>
-      <dependency id="nanoFramework.CoreLibrary" version="1.17.1" />
+      <dependency id="nanoFramework.CoreLibrary" version="1.17.7" />
       <dependency id="nanoFramework.System.Net.Http" version="1.5.184" />
     </dependencies>
   </metadata>
