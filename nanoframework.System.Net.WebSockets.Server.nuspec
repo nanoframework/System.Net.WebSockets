@@ -19,7 +19,7 @@
 There are also two other packages, one with the client API only and another with the complete API.</description>
     <tags>nanoFramework C# csharp netmf netnf WebSockets</tags>
     <dependencies>
-      <dependency id="nanoFramework.CoreLibrary" version="1.17.1" />
+      <dependency id="nanoFramework.CoreLibrary" version="1.17.7" />
       <dependency id="nanoFramework.System.Net.Http" version="1.5.184" />
     </dependencies>
   </metadata>
