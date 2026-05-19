@@ -52,6 +52,7 @@ steps:
 - template: azure-pipelines-templates/class-lib-build-only.yml@templates  
   parameters:
     sonarCloudProject: 'nanoframework_nanoframework.System.Net.WebSockets'
+    usePreviewBuild: true
 
 # package steps
 - template: azure-pipelines-templates/class-lib-package.yml@templates  
@@ -66,7 +67,9 @@ steps:
   parameters:
     nugetPackageName: 'nanoFramework.System.Net.WebSockets.Server'
 
-- template: azure-pipelines-templates/class-lib-publish.yml@templates  
+- template: azure-pipelines-templates/class-lib-publish.yml@templates
+  parameters:
+    baseBranchName: 'develop'
 
 # create or update GitHub release ON tags from release or main branches
 - task: GithubRelease@1
