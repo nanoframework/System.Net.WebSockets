@@ -21,7 +21,7 @@ There are also two other packages, one with the client API only and another with
     <dependencies>
       <group targetFramework=".NETnanoFramework1.0">
         <dependency id="nanoFramework.CoreLibrary" version="2.0.0-preview.49" />
-        <dependency id="nanoFramework.System.Net.Http" version="2.0.0-preview.6" />
+        <dependency id="nanoFramework.System.Net.Http" version="2.0.0-preview.7" />
       </group>
     </dependencies>
   </metadata>
