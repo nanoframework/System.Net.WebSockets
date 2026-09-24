@@ -100,22 +100,24 @@ namespace System.Net.WebSockets
                             break;
 
                         case OpCode.ConnectionCloseFrame:
-                            _webSocket.CloseStatus = WebSocketCloseStatus.Empty;
+                            var peerCloseStatus = WebSocketCloseStatus.Empty;
 
                             if (buffer.Length > 1)
                             {
                                 byte[] closeByteCode = new byte[] { buffer[1], buffer[0] };
                                 UInt16 statusCode = BitConverter.ToUInt16(closeByteCode, 0);
-                                if (statusCode > 999 && statusCode < 1012) 
+                                if (statusCode > 999 && statusCode < 1012)
                                 {
-                                    _webSocket.CloseStatus = (WebSocketCloseStatus)statusCode;
+                                    peerCloseStatus = (WebSocketCloseStatus)statusCode;
                                 }
                             }
 
                             //connection asked to be closed return answer
-                            if (_webSocket.TryMarkCloseReceived())
+                            if (_webSocket.TryMarkCloseReceived(peerCloseStatus))
                             {
-                                _webSocket.RawClose(WebSocketCloseStatus.NormalClosure, buffer, true);
+                                // echo the status code received (RFC 6455 section 5.5.1), without the peer's reason
+                                // (no status code is sent if none was received)
+                                _webSocket.RawClose(peerCloseStatus, null, true);
                             }
                             else
                             {

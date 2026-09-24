@@ -218,26 +218,36 @@ namespace System.Net.WebSockets
         }
 
         /// <summary>
-        /// Will start closing the WebSocket connection using the close handshake defined in the WebSocket protocol specification section 7.
+        /// Will start closing the WebSocket connection using the close handshake defined in the <see cref="WebSocket"/> protocol specification section 7.
         /// </summary>
         /// <param name="closeStatus">Indicates the reason for closing the WebSocket connection.</param>
         /// <param name="statusDescription">Specifies a human readable explanation as to why the connection is closed.</param>
         /// <remarks>
-        /// WebSocketCloseStatus.EndpointUnavailable will close the WebSocket synchronous without awaiting response.
+        /// <para>
+        /// This method doesn't block. The close message is sent after the messages already queued and <see cref="ConnectionClosed"/> is raised
+        /// when the remote endpoint answers the close message, or after <see cref="ServerTimeout"/> if it doesn't.
+        /// </para>
+        /// <para>
+        /// <see cref="WebSocketCloseStatus.EndpointUnavailable"/> will close the <see cref="WebSocket"/> synchronous without awaiting response.
+        /// The call blocks until the close message is sent (bounded by <see cref="ServerTimeout"/>) and messages still queued may not be sent.
+        /// </para>
+        /// <para>
+        /// Only has effect if the connection is open. With <see cref="WebSocketCloseStatus.Empty"/> no status code is sent, so <paramref name="statusDescription"/> is ignored.
+        /// </para>
         /// </remarks>
-        public void Close(WebSocketCloseStatus closeStatus = WebSocketCloseStatus.Empty, string statusDescription = null)
+        public void Close(
+            WebSocketCloseStatus closeStatus = WebSocketCloseStatus.Empty,
+            string statusDescription = null)
         {
-            if (State != WebSocketState.Open)
-            {
-                //already closing or closed
-                return;
-            }
-
             bool closeImmediately = closeStatus == WebSocketCloseStatus.EndpointUnavailable;
 
-            // state transition (and ClosingTime) is done atomically by TryBeginClose
-            // a normal close is sent after the messages already queued, so these aren't lost
-            RawClose(closeStatus, statusDescription == null ? null : Encoding.UTF8.GetBytes(statusDescription), closeImmediately, !closeImmediately);
+            // state check and transition (and ClosingTime) are done atomically by TryBeginClose
+            RawClose(
+                closeStatus,
+                statusDescription == null ? null : Encoding.UTF8.GetBytes(statusDescription),
+                closeImmediately,
+                !closeImmediately,
+                true);
         }
         
         /// <summary>
@@ -255,9 +265,15 @@ namespace System.Net.WebSockets
 
         // CloseImediately will Send a close message and not await this message.
         // afterPendingMessages will send the close message after the messages already queued, instead of before them.
-        internal void RawClose(WebSocketCloseStatus closeStatus = WebSocketCloseStatus.Empty, byte[] buffer = null, bool CloseImmediately = false, bool afterPendingMessages = false)
+        // requireOpen will only close an open connection (not one answering a close message from the remote endpoint).
+        internal void RawClose(
+            WebSocketCloseStatus closeStatus = WebSocketCloseStatus.Empty,
+            byte[] buffer = null,
+            bool CloseImmediately = false,
+            bool afterPendingMessages = false,
+            bool requireOpen = false)
         {
-            if (!QueueCloseFrame(closeStatus, buffer, afterPendingMessages))
+            if (!QueueCloseFrame(closeStatus, buffer, afterPendingMessages, requireOpen))
             {
                 //already closing or closed
                 return;
@@ -296,9 +312,11 @@ namespace System.Net.WebSockets
 
         // Non blocking close, used by the timeout checker.
         // The connection is hard closed by a later timeout check, once the close message is sent or ServerTimeout expires.
-        internal void BeginClose(WebSocketCloseStatus closeStatus, byte[] buffer)
+        internal void BeginClose(
+            WebSocketCloseStatus closeStatus,
+            byte[] buffer)
         {
-            if (QueueCloseFrame(closeStatus, buffer, false))
+            if (QueueCloseFrame(closeStatus, buffer, false, false))
             {
                 lock (_stateLock)
                 {
@@ -307,9 +325,13 @@ namespace System.Net.WebSockets
             }
         }
 
-        private bool QueueCloseFrame(WebSocketCloseStatus closeStatus, byte[] buffer, bool afterPendingMessages)
+        private bool QueueCloseFrame(
+            WebSocketCloseStatus closeStatus,
+            byte[] buffer,
+            bool afterPendingMessages,
+            bool requireOpen)
         {
-            if (!TryBeginClose(closeStatus))
+            if (!TryBeginClose(closeStatus, requireOpen))
             {
                 return false;
             }
@@ -348,12 +370,14 @@ namespace System.Net.WebSockets
         }
 
         // Atomically moves to CloseSent, making sure only one close message is ever queued.
-        private bool TryBeginClose(WebSocketCloseStatus closeStatus)
+        private bool TryBeginClose(
+            WebSocketCloseStatus closeStatus,
+            bool requireOpen)
         {
             lock (_stateLock)
             {
                 if (_closeFrameQueued
-                    || !(State == WebSocketState.Open || State == WebSocketState.CloseReceived))
+                    || !(State == WebSocketState.Open || (!requireOpen && State == WebSocketState.CloseReceived)))
                 {
                     return false;
                 }
@@ -371,10 +395,12 @@ namespace System.Net.WebSockets
 
         // Called when the peer sent a close message.
         // Returns true if the close message has to be answered, false if the connection is already closing and can be hard closed.
-        internal bool TryMarkCloseReceived()
+        internal bool TryMarkCloseReceived(WebSocketCloseStatus peerCloseStatus)
         {
             lock (_stateLock)
             {
+                CloseStatus = peerCloseStatus;
+
                 if (_closeFrameQueued
                     || !(State == WebSocketState.Open || State == WebSocketState.CloseReceived))
                 {

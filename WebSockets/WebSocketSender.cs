@@ -29,6 +29,8 @@ namespace System.Net.WebSockets
         
         internal bool CloseMessageSent { get; private set; } = false;
 
+        private bool _stopRequested = false;
+
         internal bool ControlMessagesPresent
         {
             get
@@ -72,6 +74,8 @@ namespace System.Net.WebSockets
 
         internal void StopSender()
         {
+            // set before signaling, the event is shared with QueueMessage so a signal alone doesn't mean stop
+            _stopRequested = true;
             CloseMessageSent = true;
 
             _shutdownEvent.Set();
@@ -140,6 +144,12 @@ namespace System.Net.WebSockets
 
                     for (int i = 0; i < numberOfFrames; i++)
                     {
+                        if (CloseMessageSent)
+                        {
+                            // close message was sent (or sender stopped) while sending fragments, stop sending
+                            break;
+                        }
+
                         //start frame fin = 0 Opcode normal
                         if (i == 0) 
                         {
@@ -225,7 +235,11 @@ namespace System.Net.WebSockets
             CloseMessageSent = true;
 
             // wait until resources can be released.
-            _shutdownEvent.WaitOne();
+            // loop because the event can still be signaled by a message queued before the close
+            while (!_stopRequested)
+            {
+                _shutdownEvent.WaitOne();
+            }
         }
 
 
