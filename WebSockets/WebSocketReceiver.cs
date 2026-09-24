@@ -182,6 +182,7 @@ namespace System.Net.WebSockets
         private ReceiveMessageFrame SetMessageError(ReceiveMessageFrame frame, string errorMsg, WebSocketCloseStatus closeCode)
         {
             frame.ErrorMessage = errorMsg;
+            frame.CloseStatus = closeCode;
             return frame;
         }
 

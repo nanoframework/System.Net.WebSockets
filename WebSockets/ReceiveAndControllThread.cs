@@ -100,28 +100,26 @@ namespace System.Net.WebSockets
                             break;
 
                         case OpCode.ConnectionCloseFrame:
-                            _webSocket.CloseStatus = WebSocketCloseStatus.Empty;
-
-                            if (buffer.Length > 1)
+                            if (!TryGetPeerCloseStatus(buffer, out WebSocketCloseStatus peerCloseStatus))
                             {
-                                byte[] closeByteCode = new byte[] { buffer[1], buffer[0] };
-                                UInt16 statusCode = BitConverter.ToUInt16(closeByteCode, 0);
-                                if (statusCode > 999 && statusCode < 1012) 
-                                {
-                                    _webSocket.CloseStatus = (WebSocketCloseStatus)statusCode;
-                                }
-                            }
+                                _webSocket.HasError = true;
 
+                                Debug.WriteLine($"{_webSocket.RemoteEndPoint} sent an invalid close frame");
+
+                                // no-op if our close message was already queued
+                                _webSocket.RawClose(WebSocketCloseStatus.ProtocolError, Encoding.UTF8.GetBytes("Invalid close frame"), true);
+                            }
                             //connection asked to be closed return answer
-                            if (_webSocket.TryMarkCloseReceived())
+                            else if (_webSocket.TryMarkCloseReceived(peerCloseStatus))
                             {
-                                _webSocket.RawClose(WebSocketCloseStatus.NormalClosure, buffer, true);
+                                // echo the status code received (RFC 6455 section 5.5.1), without the peer's reason
+                                // (no status code is sent if none was received)
+                                _webSocket.RawClose(peerCloseStatus, null, true);
                             }
-                            else
-                            {
-                                // our close message can still be queued behind pending messages (simultaneous close)
-                                _webSocket.WaitForCloseMessageSent();
-                            }
+
+                            // our close message can still be queued behind pending messages (simultaneous close)
+                            // returns immediately if it was sent or the connection is already closed
+                            _webSocket.WaitForCloseMessageSent();
 
                             // either this is the response to our close, or RawClose lost a race with another close,
                             // so we can shut down the socket (no-op if already closed)
@@ -148,7 +146,6 @@ namespace System.Net.WebSockets
                 }
             }
         }
-
 
         // Runs on the timer thread, concurrently with the receive thread.
         // Shared state is accessed through WebSocket helpers that only hold a lock for field access,
@@ -195,6 +192,37 @@ namespace System.Net.WebSockets
             {
                 Interlocked.Exchange(ref _checkingTimeouts, 0);
             }
+        }
+
+        // Gets the status code from the payload of a close frame received from the remote endpoint.
+        // Returns false if the payload is invalid: 1 byte long, or with a status code that can't be sent in a close frame (RFC 6455 section 7.4).
+        private static bool TryGetPeerCloseStatus(byte[] buffer, out WebSocketCloseStatus closeStatus)
+        {
+            closeStatus = WebSocketCloseStatus.Empty;
+
+            if (buffer.Length == 0)
+            {
+                // no status code
+                return true;
+            }
+
+            if (buffer.Length == 1)
+            {
+                return false;
+            }
+
+            int statusCode = (buffer[0] << 8) | buffer[1];
+
+            if ((statusCode >= 1000 && statusCode <= 1003)
+                || (statusCode >= 1007 && statusCode <= 1014)
+                || (statusCode >= 3000 && statusCode <= 4999))
+            {
+                closeStatus = (WebSocketCloseStatus)statusCode;
+
+                return true;
+            }
+
+            return false;
         }
 
         private void OnNewMessage(ReceiveMessageFrame message)
