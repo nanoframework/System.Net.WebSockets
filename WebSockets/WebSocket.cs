@@ -27,7 +27,7 @@ namespace System.Net.WebSockets
 
         internal WebSocketSender _webSocketSender;
         private readonly object _syncLock = new object();
-        private bool _hardClosed = false;
+        private int _hardClosed = 0;
         internal MessageReceivedEventHandler CallbacksMessageReceivedEventHandler;
 
         /// <summary>
@@ -134,7 +134,7 @@ namespace System.Net.WebSockets
             _socket = socket;
             RemoteEndPoint = (IPEndPoint)socket.RemoteEndPoint;
             LastContactTimeStamp = DateTime.UtcNow;
-            _hardClosed = false;
+            _hardClosed = 0;
 
             //start server sending and receiving async
             WebSocketReceiver = new WebSocketReceiver(stream, RemoteEndPoint, this, IsServer, MaxReceiveFrameSize, OnReadError);
@@ -305,15 +305,11 @@ namespace System.Net.WebSockets
 
         internal void HardClose()
         {
-            lock (_syncLock)
+            // can be called from several threads (receive, send error, timeout checker)
+            // lock-free guard: the timeout checker suspends the receive thread, so a lock here could deadlock
+            if (Interlocked.CompareExchange(ref _hardClosed, 1, 0) != 0)
             {
-                // can be called from several threads (receive, send error, timeout checker)
-                if (_hardClosed)
-                {
-                    return;
-                }
-
-                _hardClosed = true;
+                return;
             }
 
             State = WebSocketState.Closed;
@@ -322,18 +318,23 @@ namespace System.Net.WebSockets
             _webSocketSender.StopSender();
 
             Debug.WriteLine($"Connection - {RemoteEndPoint.ToString()} - Closed");
-         
-            ConnectionClosed?.Invoke(this, new EventArgs());
 
-            //Let the tcp socket linger for a second so it can try and send all data out before final close. 
             try
             {
-                _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Linger, 1);
-                _socket.Close();
+                ConnectionClosed?.Invoke(this, new EventArgs());
             }
-            catch (ObjectDisposedException e)
+            finally
             {
-                Debug.WriteLine("socket could not be closed properly because it was already disposed");
+                //Let the tcp socket linger for a second so it can try and send all data out before final close.
+                try
+                {
+                    _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Linger, 1);
+                    _socket.Close();
+                }
+                catch (ObjectDisposedException e)
+                {
+                    Debug.WriteLine("socket could not be closed properly because it was already disposed");
+                }
             }
         }
 

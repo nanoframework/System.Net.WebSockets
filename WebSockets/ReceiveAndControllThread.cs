@@ -39,7 +39,12 @@ namespace System.Net.WebSockets
 
                         Debug.WriteLine($"{_webSocket.RemoteEndPoint} closed with error: {ex.Message}");
 
-                        _webSocket.RawClose(WebSocketCloseStatus.EndpointUnavailable, Encoding.UTF8.GetBytes(ex.Message), true);
+                        // don't leak internal exception details to the peer
+                        _webSocket.RawClose(WebSocketCloseStatus.EndpointUnavailable, Encoding.UTF8.GetBytes("Connection error"), true);
+
+                        // RawClose returns without closing if a close was already sent (or the socket is closing),
+                        // and the timeout checker is disposed below, so make sure the connection is closed
+                        _webSocket.HardClose();
                     }
 
                     // stream can't be used anymore
