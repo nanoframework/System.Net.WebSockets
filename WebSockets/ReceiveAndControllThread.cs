@@ -117,6 +117,11 @@ namespace System.Net.WebSockets
                             {
                                 _webSocket.RawClose(WebSocketCloseStatus.NormalClosure, buffer, true);
                             }
+                            else
+                            {
+                                // our close message can still be queued behind pending messages (simultaneous close)
+                                _webSocket.WaitForCloseMessageSent();
+                            }
 
                             // either this is the response to our close, or RawClose lost a race with another close,
                             // so we can shut down the socket (no-op if already closed)
