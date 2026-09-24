@@ -199,6 +199,13 @@ namespace System.Net.WebSockets
             while (size > 0)
             {
                 int bytes = _inputStream.Read(buffer, offset, size);
+
+                if (bytes <= 0)
+                {
+                    // zero bytes read means the remote end has closed the connection
+                    throw new SocketException(SocketError.ConnectionReset);
+                }
+
                 offset += bytes;
                 size -= bytes;
             }

@@ -27,6 +27,7 @@ namespace System.Net.WebSockets
 
         internal WebSocketSender _webSocketSender;
         private readonly object _syncLock = new object();
+        private bool _hardClosed = false;
         internal MessageReceivedEventHandler CallbacksMessageReceivedEventHandler;
 
         /// <summary>
@@ -133,6 +134,7 @@ namespace System.Net.WebSockets
             _socket = socket;
             RemoteEndPoint = (IPEndPoint)socket.RemoteEndPoint;
             LastContactTimeStamp = DateTime.UtcNow;
+            _hardClosed = false;
 
             //start server sending and receiving async
             WebSocketReceiver = new WebSocketReceiver(stream, RemoteEndPoint, this, IsServer, MaxReceiveFrameSize, OnReadError);
@@ -275,15 +277,26 @@ namespace System.Net.WebSockets
 
             if (CloseImmediately)
             {
+                State = WebSocketState.CloseSent;
+                ClosingTime = DateTime.UtcNow;
+
+                // Give it a moment for sending a close message. This will block the thread.
+                // Wait is bounded because the send thread can be stuck on a dead connection.
+                int maxWaitMs = (int)ServerTimeout.TotalMilliseconds;
+
+                if (maxWaitMs <= 0)
+                {
+                    // infinite (or invalid) server timeout, use a sensible default
+                    maxWaitMs = 5000;
+                }
+
                 int msWaited = 0;
 
-                //Give it a moment for sending a close message. This will block the thread.
-                while (!_webSocketSender.CloseMessageSent ) 
+                while (!_webSocketSender.CloseMessageSent
+                       && msWaited < maxWaitMs)
                 {
                     msWaited += 50;
                     Thread.Sleep(50);
-                    State = WebSocketState.CloseSent;
-                    ClosingTime = DateTime.UtcNow;
                 }
 
                 HardClose();
@@ -292,6 +305,17 @@ namespace System.Net.WebSockets
 
         internal void HardClose()
         {
+            lock (_syncLock)
+            {
+                // can be called from several threads (receive, send error, timeout checker)
+                if (_hardClosed)
+                {
+                    return;
+                }
+
+                _hardClosed = true;
+            }
+
             State = WebSocketState.Closed;
 
             StopReceiving();
