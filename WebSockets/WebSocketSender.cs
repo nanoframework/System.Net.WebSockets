@@ -49,9 +49,10 @@ namespace System.Net.WebSockets
             _webSocketWriteErrorCallback = webSocketWriteErrorCallback;
         }
         
-        internal void QueueMessage(SendMessageFrame sendMessage)
+        // afterPendingMessages queues a control frame with the message frames, so it's sent after the ones already queued
+        internal void QueueMessage(SendMessageFrame sendMessage, bool afterPendingMessages = false)
         {
-            if (sendMessage.IsControllFrame)
+            if (sendMessage.IsControllFrame && !afterPendingMessages)
             {
                 lock (_controlMessages.SyncRoot)
                 {
@@ -121,6 +122,12 @@ namespace System.Net.WebSockets
                     // message is not fragmented or fragment is smaller that the buffer size
                     // good to go in a single batch
                     SendFrame(messageFrame);
+
+                    if (messageFrame.OpCode == OpCode.ConnectionCloseFrame)
+                    {
+                        // close queued after pending messages
+                        OnCloseFrameSent();
+                    }
                 }
                 else
                 {
@@ -202,18 +209,23 @@ namespace System.Net.WebSockets
                         // no need to keep checking messages stack
                         keepChecking = false;
 
-                        // close message was sent
-                        CloseMessageSent = true;
-
-                        // wait until resources can be released. 
-                        _shutdownEvent.WaitOne();
+                        OnCloseFrameSent();
                     }
 
                     itemSend = true;
                 }
             }
 
-            return itemSend;   
+            return itemSend;
+        }
+
+        private void OnCloseFrameSent()
+        {
+            // close message was sent
+            CloseMessageSent = true;
+
+            // wait until resources can be released.
+            _shutdownEvent.WaitOne();
         }
 
 

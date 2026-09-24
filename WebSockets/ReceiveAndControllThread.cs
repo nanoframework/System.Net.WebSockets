@@ -13,6 +13,7 @@ namespace System.Net.WebSockets
     internal class ReceiveAndControllThread
     {
         private readonly WebSocket _webSocket;
+        private int _checkingTimeouts = 0;
 
         public ReceiveAndControllThread(WebSocket webSocket)
         {
@@ -21,8 +22,8 @@ namespace System.Net.WebSockets
 
         public void WorkerThread() //this thread is always running and thus the best place for controlling ping and other messages
         {
-            var timeoutCheckerTimer = new Timer(CheckTimeouts, Thread.CurrentThread, 5000, 5000); 
-            
+            var timeoutCheckerTimer = new Timer(CheckTimeouts, null, 5000, 5000);
+
 
             while (!_webSocket.Stopped)
             {
@@ -52,9 +53,9 @@ namespace System.Net.WebSockets
                 }
             }
 
-            _webSocket.ReceiveStream.Close();
             timeoutCheckerTimer.Change(Timeout.Infinite, Timeout.Infinite);
             timeoutCheckerTimer.Dispose();
+            _webSocket.ReceiveStream.Close();
         }
 
         private void ProcessIncomingMessage()
@@ -80,7 +81,7 @@ namespace System.Net.WebSockets
                 {
                     byte[] buffer = _webSocket.WebSocketReceiver.ReadBuffer(messageFrame.MessageLength, messageFrame.Masks);
 
-                    _webSocket.LastContactTimeStamp = DateTime.UtcNow;
+                    _webSocket.TouchLastContact();
 
                     switch (messageFrame.OpCode)
                     {
@@ -95,7 +96,7 @@ namespace System.Net.WebSockets
                         case OpCode.PongFrame: 
                             // received a Pong
                             // checking if content Pong matches Ping is not implemented due to thread safety and memory consumption considerations
-                            _webSocket.Pinging = false; 
+                            _webSocket.OnPongReceived();
                             break;
 
                         case OpCode.ConnectionCloseFrame:
@@ -112,17 +113,19 @@ namespace System.Net.WebSockets
                             }
 
                             //connection asked to be closed return answer
-                            if (_webSocket.State != WebSocketFrame.WebSocketState.CloseSent)
+                            if (_webSocket.TryMarkCloseReceived())
                             {
-                                _webSocket.State = WebSocketFrame.WebSocketState.CloseReceived;
-
                                 _webSocket.RawClose(WebSocketCloseStatus.NormalClosure, buffer, true);
                             }
-                            //response to connection close we can shut down the socket.
                             else
                             {
-                                _webSocket.HardClose();   
+                                // our close message can still be queued behind pending messages (simultaneous close)
+                                _webSocket.WaitForCloseMessageSent();
                             }
+
+                            // either this is the response to our close, or RawClose lost a race with another close,
+                            // so we can shut down the socket (no-op if already closed)
+                            _webSocket.HardClose();
                             break;
                     }
                 }
@@ -138,7 +141,7 @@ namespace System.Net.WebSockets
                     {
                         messageFrame.Buffer = _webSocket.WebSocketReceiver.ReadBuffer(messageFrame.MessageLength, messageFrame.Masks);
 
-                        _webSocket.LastContactTimeStamp = DateTime.UtcNow;
+                        _webSocket.TouchLastContact();
 
                         OnNewMessage(messageFrame);
                     }
@@ -147,37 +150,41 @@ namespace System.Net.WebSockets
         }
 
 
-        private void CheckTimeouts(object thread)
+        // Runs on the timer thread, concurrently with the receive thread.
+        // Shared state is accessed through WebSocket helpers that only hold a lock for field access,
+        // and nothing here blocks, so a receive thread holding a lock can't stall this check.
+        private void CheckTimeouts(object state)
         {
-            var receiveThread = (Thread)thread;
-
-#pragma warning disable S3889 // OK to use in .NET nanoFramework context
-            receiveThread.Suspend();
-#pragma warning restore S3889 // Neither "Thread.Resume" nor "Thread.Suspend" should be used
+            // skip this tick if the previous one is still running
+            if (Interlocked.CompareExchange(ref _checkingTimeouts, 1, 0) != 0)
+            {
+                return;
+            }
 
             try
             {
+                if (_webSocket.Stopped)
+                {
+                    return;
+                }
+
                 //Controlling ping and ControllerMessagesTimeout
-                if (_webSocket.Pinging
-                    && _webSocket.PingTime.Add(_webSocket.ServerTimeout) < DateTime.UtcNow)
+                switch (_webSocket.EvaluateTimeouts(DateTime.UtcNow))
                 {
-                    _webSocket.RawClose(WebSocketCloseStatus.PolicyViolation, Encoding.UTF8.GetBytes("Ping timeout"), true);
+                    case WebSocket.TimeoutAction.PingTimeout:
+                        Debug.WriteLine($"{_webSocket.RemoteEndPoint} ping timed out");
 
-                    Debug.WriteLine($"{_webSocket.RemoteEndPoint} ping timed out");
-                }
+                        // don't wait for the close message to be sent, a following check will close the connection
+                        _webSocket.BeginClose(WebSocketCloseStatus.PolicyViolation, Encoding.UTF8.GetBytes("Ping timeout"));
+                        break;
 
-                if (_webSocket.State == WebSocketFrame.WebSocketState.CloseSent
-                    && _webSocket.ClosingTime.Add(_webSocket.ServerTimeout) < DateTime.UtcNow)
-                {
-                    _webSocket.HardClose();
-                }
+                    case WebSocket.TimeoutAction.HardClose:
+                        _webSocket.HardClose();
+                        break;
 
-                if (_webSocket.KeepAliveInterval != Timeout.InfiniteTimeSpan
-                    && _webSocket.State != WebSocketFrame.WebSocketState.CloseSent
-                    && !_webSocket.Pinging
-                    && _webSocket.LastContactTimeStamp.Add(_webSocket.KeepAliveInterval) < DateTime.UtcNow)
-                {
-                    _webSocket.SendPing();
+                    case WebSocket.TimeoutAction.SendPing:
+                        _webSocket.SendPing();
+                        break;
                 }
             }
             catch (Exception ex)
@@ -186,10 +193,7 @@ namespace System.Net.WebSockets
             }
             finally
             {
-                // always resume the receive thread, otherwise it will be left suspended forever
-#pragma warning disable S3889 // OK to use in .NET nanoFramework context
-                receiveThread.Resume();
-#pragma warning restore S3889 // Neither "Thread.Resume" nor "Thread.Suspend" should be used
+                Interlocked.Exchange(ref _checkingTimeouts, 0);
             }
         }
 

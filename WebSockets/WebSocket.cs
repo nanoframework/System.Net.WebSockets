@@ -28,6 +28,21 @@ namespace System.Net.WebSockets
         internal WebSocketSender _webSocketSender;
         private readonly object _syncLock = new object();
         private int _hardClosed = 0;
+
+        // protects the connection state fields shared between the receive thread, the timeout checker and the send thread
+        // never hold it while doing I/O, sleeping, queueing frames or calling user code
+        private readonly object _stateLock = new object();
+        private bool _closeFrameQueued = false;
+        private bool _hardCloseWhenCloseSent = false;
+
+        internal enum TimeoutAction
+        {
+            None,
+            SendPing,
+            PingTimeout,
+            HardClose
+        }
+
         internal MessageReceivedEventHandler CallbacksMessageReceivedEventHandler;
 
         /// <summary>
@@ -135,6 +150,8 @@ namespace System.Net.WebSockets
             RemoteEndPoint = (IPEndPoint)socket.RemoteEndPoint;
             LastContactTimeStamp = DateTime.UtcNow;
             _hardClosed = 0;
+            _closeFrameQueued = false;
+            _hardCloseWhenCloseSent = false;
 
             //start server sending and receiving async
             WebSocketReceiver = new WebSocketReceiver(stream, RemoteEndPoint, this, IsServer, MaxReceiveFrameSize, OnReadError);
@@ -213,14 +230,14 @@ namespace System.Net.WebSockets
             if (State != WebSocketState.Open)
             {
                 //already closing or closed
-                return; 
+                return;
             }
 
-            State = WebSocketState.CloseSent;
+            bool closeImmediately = closeStatus == WebSocketCloseStatus.EndpointUnavailable;
 
-            ClosingTime = DateTime.UtcNow;
-
-            RawClose(closeStatus, statusDescription == null ? null : Encoding.UTF8.GetBytes(statusDescription), closeStatus == WebSocketCloseStatus.EndpointUnavailable);
+            // state transition (and ClosingTime) is done atomically by TryBeginClose
+            // a normal close is sent after the messages already queued, so these aren't lost
+            RawClose(closeStatus, statusDescription == null ? null : Encoding.UTF8.GetBytes(statusDescription), closeImmediately, !closeImmediately);
         }
         
         /// <summary>
@@ -228,26 +245,78 @@ namespace System.Net.WebSockets
         /// </summary>
         public void Abort()
         {
-            State = WebSocketState.Aborted;
+            lock (_stateLock)
+            {
+                State = WebSocketState.Aborted;
+            }
 
             HardClose(); 
         }
 
-        // CloseImediately will Send a close message and not await this message. 
-        internal void RawClose(WebSocketCloseStatus closeStatus = WebSocketCloseStatus.Empty, byte[] buffer = null, bool CloseImmediately = false)
+        // CloseImediately will Send a close message and not await this message.
+        // afterPendingMessages will send the close message after the messages already queued, instead of before them.
+        internal void RawClose(WebSocketCloseStatus closeStatus = WebSocketCloseStatus.Empty, byte[] buffer = null, bool CloseImmediately = false, bool afterPendingMessages = false)
         {
-            //send closing message which needs to be awaited for a period
-            if (!(State == WebSocketState.Open || State == WebSocketState.CloseReceived))
+            if (!QueueCloseFrame(closeStatus, buffer, afterPendingMessages))
             {
                 //already closing or closed
-                return; 
+                return;
             }
 
-            CloseStatus = closeStatus;
+            if (CloseImmediately)
+            {
+                WaitForCloseMessageSent();
+
+                HardClose();
+            }
+        }
+
+        // Give it a moment for sending a close message. This will block the thread.
+        // Wait is bounded because the send thread can be stuck on a dead connection.
+        // Returns immediately if the connection is already closed.
+        internal void WaitForCloseMessageSent()
+        {
+            int maxWaitMs = (int)ServerTimeout.TotalMilliseconds;
+
+            if (maxWaitMs <= 0)
+            {
+                // infinite (or invalid) server timeout, use a sensible default
+                maxWaitMs = 5000;
+            }
+
+            int msWaited = 0;
+
+            while (!_webSocketSender.CloseMessageSent
+                   && msWaited < maxWaitMs)
+            {
+                msWaited += 50;
+                Thread.Sleep(50);
+            }
+        }
+
+        // Non blocking close, used by the timeout checker.
+        // The connection is hard closed by a later timeout check, once the close message is sent or ServerTimeout expires.
+        internal void BeginClose(WebSocketCloseStatus closeStatus, byte[] buffer)
+        {
+            if (QueueCloseFrame(closeStatus, buffer, false))
+            {
+                lock (_stateLock)
+                {
+                    _hardCloseWhenCloseSent = true;
+                }
+            }
+        }
+
+        private bool QueueCloseFrame(WebSocketCloseStatus closeStatus, byte[] buffer, bool afterPendingMessages)
+        {
+            if (!TryBeginClose(closeStatus))
+            {
+                return false;
+            }
 
             byte[] sendBuffer = new byte[0];
 
-            if (!(closeStatus == WebSocketCloseStatus.ClosedAbnormally || closeStatus == WebSocketCloseStatus.Empty)) 
+            if (!(closeStatus == WebSocketCloseStatus.ClosedAbnormally || closeStatus == WebSocketCloseStatus.Empty))
             {
                 if (buffer == null)
                 {
@@ -273,46 +342,118 @@ namespace System.Net.WebSockets
             {
                 Buffer = sendBuffer,
                 OpCode = OpCode.ConnectionCloseFrame,
-            });
+            }, afterPendingMessages);
 
-            if (CloseImmediately)
+            return true;
+        }
+
+        // Atomically moves to CloseSent, making sure only one close message is ever queued.
+        private bool TryBeginClose(WebSocketCloseStatus closeStatus)
+        {
+            lock (_stateLock)
             {
-                State = WebSocketState.CloseSent;
+                if (_closeFrameQueued
+                    || !(State == WebSocketState.Open || State == WebSocketState.CloseReceived))
+                {
+                    return false;
+                }
+
+                _closeFrameQueued = true;
+                CloseStatus = closeStatus;
+
+                // set ClosingTime before State so the timeout checker never sees CloseSent with a stale ClosingTime
                 ClosingTime = DateTime.UtcNow;
+                State = WebSocketState.CloseSent;
 
-                // Give it a moment for sending a close message. This will block the thread.
-                // Wait is bounded because the send thread can be stuck on a dead connection.
-                int maxWaitMs = (int)ServerTimeout.TotalMilliseconds;
+                return true;
+            }
+        }
 
-                if (maxWaitMs <= 0)
+        // Called when the peer sent a close message.
+        // Returns true if the close message has to be answered, false if the connection is already closing and can be hard closed.
+        internal bool TryMarkCloseReceived()
+        {
+            lock (_stateLock)
+            {
+                if (_closeFrameQueued
+                    || !(State == WebSocketState.Open || State == WebSocketState.CloseReceived))
                 {
-                    // infinite (or invalid) server timeout, use a sensible default
-                    maxWaitMs = 5000;
+                    return false;
                 }
 
-                int msWaited = 0;
+                State = WebSocketState.CloseReceived;
 
-                while (!_webSocketSender.CloseMessageSent
-                       && msWaited < maxWaitMs)
+                return true;
+            }
+        }
+
+        internal void TouchLastContact()
+        {
+            lock (_stateLock)
+            {
+                LastContactTimeStamp = DateTime.UtcNow;
+            }
+        }
+
+        internal void OnPongReceived()
+        {
+            lock (_stateLock)
+            {
+                Pinging = false;
+            }
+        }
+
+        // Decides what the timeout checker has to do. When it returns SendPing the ping is already flagged as in progress.
+        internal TimeoutAction EvaluateTimeouts(DateTime now)
+        {
+            lock (_stateLock)
+            {
+                if (State == WebSocketState.CloseSent)
                 {
-                    msWaited += 50;
-                    Thread.Sleep(50);
+                    if ((_hardCloseWhenCloseSent && _webSocketSender.CloseMessageSent)
+                        || ClosingTime.Add(ServerTimeout) < now)
+                    {
+                        return TimeoutAction.HardClose;
+                    }
+
+                    return TimeoutAction.None;
                 }
 
-                HardClose();
+                if (State != WebSocketState.Open)
+                {
+                    return TimeoutAction.None;
+                }
+
+                if (Pinging)
+                {
+                    return PingTime.Add(ServerTimeout) < now ? TimeoutAction.PingTimeout : TimeoutAction.None;
+                }
+
+                if (KeepAliveInterval != Timeout.InfiniteTimeSpan
+                    && LastContactTimeStamp.Add(KeepAliveInterval) < now)
+                {
+                    Pinging = true;
+                    PingTime = now;
+
+                    return TimeoutAction.SendPing;
+                }
+
+                return TimeoutAction.None;
             }
         }
 
         internal void HardClose()
         {
             // can be called from several threads (receive, send error, timeout checker)
-            // lock-free guard: the timeout checker suspends the receive thread, so a lock here could deadlock
             if (Interlocked.CompareExchange(ref _hardClosed, 1, 0) != 0)
             {
                 return;
             }
 
-            State = WebSocketState.Closed;
+            lock (_stateLock)
+            {
+                State = WebSocketState.Closed;
+            }
 
             StopReceiving();
             _webSocketSender.StopSender();
@@ -338,7 +479,7 @@ namespace System.Net.WebSockets
             }
         }
 
-        internal bool QueueMessageToSend(SendMessageFrame frame)
+        internal bool QueueMessageToSend(SendMessageFrame frame, bool afterPendingMessages = false)
         {
             // if connection is closing only a close respond can be send.
             if (State != WebSocketState.Open && frame.OpCode != OpCode.ConnectionCloseFrame)
@@ -349,7 +490,7 @@ namespace System.Net.WebSockets
 
             frame.EndPoint = RemoteEndPoint;
 
-            _webSocketSender.QueueMessage(frame);
+            _webSocketSender.QueueMessage(frame, afterPendingMessages);
 
             return true;
         }
@@ -376,18 +517,21 @@ namespace System.Net.WebSockets
         }
 
 
-        //Ping will only commence from this thread because of threading safety. 
+        // Pinging and PingTime are set by EvaluateTimeouts, which decides when a ping is due.
         internal void SendPing(string pingContent = "hello")
         {
-            Pinging = true;
-            PingTime = DateTime.UtcNow;
-
-            QueueMessageToSend(new SendMessageFrame()
+            bool queued = QueueMessageToSend(new SendMessageFrame()
             {
                 Buffer = Encoding.UTF8.GetBytes(pingContent),
                 OpCode = OpCode.PingFrame
 
             });
+
+            if (!queued)
+            {
+                // connection is closing, no pong will come back
+                OnPongReceived();
+            }
         }
 
         internal void StopReceiving()
