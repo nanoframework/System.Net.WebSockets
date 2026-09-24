@@ -116,7 +116,7 @@ A message can be send by calling `SendString` for a text message or `SendBytes` 
 #### Closing a connection
 
 The connection can be closed by calling `Close`. Calling this method will send a closing message over the line. You can optional specify a `WebSocketCloseStatus` and description on the reason for closing for debugging purposes (the description is only sent together with a status, it's ignored with the default `WebSocketCloseStatus.Empty`). 
-`Close` doesn't block: the closing message is sent after the messages already queued and the connection is closed when the other end answers it, or after `ServerTimeout`. Closing with `WebSocketCloseStatus.EndpointUnavailable` is synchronous: the call returns after the closing message is sent and the connection is closed, without waiting for an answer.
+`Close` doesn't block: the closing message is sent after the messages already queued and the connection is closed when the other end answers it, or after `ServerTimeout`. Closing with `WebSocketCloseStatus.EndpointUnavailable` is synchronous: the call returns after the closing message is sent and the connection is closed, without waiting for an answer. It waits at most `ServerTimeout` for the closing message to be sent; if that expires first the connection is closed anyway and the closing message may not have been sent. Messages still queued may not be sent.
 Whenever a connection is closed the event `ConnectionClosed` is fired.  
 
 ### Server

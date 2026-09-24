@@ -229,7 +229,9 @@ namespace System.Net.WebSockets
         /// </para>
         /// <para>
         /// <see cref="WebSocketCloseStatus.EndpointUnavailable"/> will close the <see cref="WebSocket"/> synchronous without awaiting response.
-        /// The call blocks until the close message is sent (bounded by <see cref="ServerTimeout"/>) and messages still queued may not be sent.
+        /// The call blocks until the close message is sent, waiting at most <see cref="ServerTimeout"/> (5 seconds if it's infinite).
+        /// If that time expires first, the connection is closed anyway and the close message may not have been sent.
+        /// Messages still queued may not be sent.
         /// </para>
         /// <para>
         /// Only has effect if the connection is open. With <see cref="WebSocketCloseStatus.Empty"/> no status code is sent, so <paramref name="statusDescription"/> is ignored.
@@ -263,7 +265,9 @@ namespace System.Net.WebSockets
             HardClose(); 
         }
 
-        // CloseImediately will Send a close message and not await this message.
+        // CloseImediately will Send a close message and not await the answer from the remote endpoint:
+        // it waits at most ServerTimeout (5 seconds if infinite) for the close message to be sent, then closes the connection,
+        // even if the close message wasn't sent. Messages still queued may not be sent.
         // afterPendingMessages will send the close message after the messages already queued, instead of before them.
         // requireOpen will only close an open connection (not one answering a close message from the remote endpoint).
         internal void RawClose(
