@@ -26,98 +26,124 @@ namespace System.Net.WebSockets
 
             while (!_webSocket.Stopped)
             {
-                var messageFrame = _webSocket.WebSocketReceiver.StartReceivingMessage();
-
-                if (messageFrame == null)
+                try
                 {
-                    //Here we could let the thread sleep to safe resources   
+                    ProcessIncomingMessage();
                 }
-                else
+                catch (Exception ex)
                 {
-                    //handle error
-                    if (messageFrame.Error)
+                    // failure reading from the stream (connection closed, reset, disposed, etc.)
+                    if (!_webSocket.Stopped)
                     {
                         _webSocket.HasError = true;
 
-                        Debug.WriteLine($"{_webSocket.RemoteEndPoint} closed with error: {messageFrame.ErrorMessage}");
+                        Debug.WriteLine($"{_webSocket.RemoteEndPoint} closed with error: {ex.Message}");
 
-                        _webSocket.RawClose(messageFrame.CloseStatus, Encoding.UTF8.GetBytes(messageFrame.ErrorMessage), true);
+                        // don't leak internal exception details to the peer
+                        _webSocket.RawClose(WebSocketCloseStatus.EndpointUnavailable, Encoding.UTF8.GetBytes("Connection error"), true);
+
+                        // RawClose returns without closing if a close was already sent (or the socket is closing),
+                        // and the timeout checker is disposed below, so make sure the connection is closed
+                        _webSocket.HardClose();
                     }
-                    else if (messageFrame.IsControllFrame)
-                    {
-                        byte[] buffer = _webSocket.WebSocketReceiver.ReadBuffer(messageFrame.MessageLength, messageFrame.Masks);
 
-                        _webSocket.LastContactTimeStamp = DateTime.UtcNow;
-
-                        switch (messageFrame.OpCode)
-                        {
-                            case OpCode.PingFrame:
-                                // need to send a Pong
-                                var pong = new SendMessageFrame() { Buffer = buffer, OpCode = OpCode.PongFrame};
-                                messageFrame.OpCode = OpCode.PongFrame;
-                                messageFrame.IsMasked = false;
-                                _webSocket.QueueMessageToSend(pong);
-                                break;
-
-                            case OpCode.PongFrame: 
-                                // received a Pong
-                                // checking if content Pong matches Ping is not implemented due to thread safety and memory consumption considerations
-                                _webSocket.Pinging = false; 
-                                break;
-
-                            case OpCode.ConnectionCloseFrame:
-                                _webSocket.CloseStatus = WebSocketCloseStatus.Empty;
-
-                                if (buffer.Length > 1)
-                                {
-                                    byte[] closeByteCode = new byte[] { buffer[1], buffer[0] };
-                                    UInt16 statusCode = BitConverter.ToUInt16(closeByteCode, 0);
-                                    if (statusCode > 999 && statusCode < 1012) 
-                                    {
-                                        _webSocket.CloseStatus = (WebSocketCloseStatus)statusCode;
-                                    }
-                                }
-
-                                //connection asked to be closed return answer
-                                if (_webSocket.State != WebSocketFrame.WebSocketState.CloseSent)
-                                {
-                                    _webSocket.State = WebSocketFrame.WebSocketState.CloseReceived;
-
-                                    _webSocket.RawClose(WebSocketCloseStatus.NormalClosure, buffer, true);
-                                }
-                                //response to connection close we can shut down the socket.
-                                else
-                                {
-                                    _webSocket.HardClose();   
-                                }
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        if (messageFrame.Error)
-                        {
-                            Debug.WriteLine($"Error message from '{_webSocket.RemoteEndPoint}' error - {messageFrame.ErrorMessage}");
-
-                            _webSocket.RawClose(messageFrame.CloseStatus, Encoding.UTF8.GetBytes(messageFrame.ErrorMessage), true);
-                        }
-                        else
-                        {
-                            messageFrame.Buffer = _webSocket.WebSocketReceiver.ReadBuffer(messageFrame.MessageLength, messageFrame.Masks);
-
-                            _webSocket.LastContactTimeStamp = DateTime.UtcNow;
-
-                            OnNewMessage(messageFrame);
-                        }
-                    }
+                    // stream can't be used anymore
+                    break;
                 }
-
-                
             }
 
             _webSocket.ReceiveStream.Close();
             timeoutCheckerTimer.Change(Timeout.Infinite, Timeout.Infinite);
             timeoutCheckerTimer.Dispose();
+        }
+
+        private void ProcessIncomingMessage()
+        {
+            var messageFrame = _webSocket.WebSocketReceiver.StartReceivingMessage();
+
+            if (messageFrame == null)
+            {
+                //Here we could let the thread sleep to safe resources   
+            }
+            else
+            {
+                //handle error
+                if (messageFrame.Error)
+                {
+                    _webSocket.HasError = true;
+
+                    Debug.WriteLine($"{_webSocket.RemoteEndPoint} closed with error: {messageFrame.ErrorMessage}");
+
+                    _webSocket.RawClose(messageFrame.CloseStatus, Encoding.UTF8.GetBytes(messageFrame.ErrorMessage), true);
+                }
+                else if (messageFrame.IsControllFrame)
+                {
+                    byte[] buffer = _webSocket.WebSocketReceiver.ReadBuffer(messageFrame.MessageLength, messageFrame.Masks);
+
+                    _webSocket.LastContactTimeStamp = DateTime.UtcNow;
+
+                    switch (messageFrame.OpCode)
+                    {
+                        case OpCode.PingFrame:
+                            // need to send a Pong
+                            var pong = new SendMessageFrame() { Buffer = buffer, OpCode = OpCode.PongFrame};
+                            messageFrame.OpCode = OpCode.PongFrame;
+                            messageFrame.IsMasked = false;
+                            _webSocket.QueueMessageToSend(pong);
+                            break;
+
+                        case OpCode.PongFrame: 
+                            // received a Pong
+                            // checking if content Pong matches Ping is not implemented due to thread safety and memory consumption considerations
+                            _webSocket.Pinging = false; 
+                            break;
+
+                        case OpCode.ConnectionCloseFrame:
+                            _webSocket.CloseStatus = WebSocketCloseStatus.Empty;
+
+                            if (buffer.Length > 1)
+                            {
+                                byte[] closeByteCode = new byte[] { buffer[1], buffer[0] };
+                                UInt16 statusCode = BitConverter.ToUInt16(closeByteCode, 0);
+                                if (statusCode > 999 && statusCode < 1012) 
+                                {
+                                    _webSocket.CloseStatus = (WebSocketCloseStatus)statusCode;
+                                }
+                            }
+
+                            //connection asked to be closed return answer
+                            if (_webSocket.State != WebSocketFrame.WebSocketState.CloseSent)
+                            {
+                                _webSocket.State = WebSocketFrame.WebSocketState.CloseReceived;
+
+                                _webSocket.RawClose(WebSocketCloseStatus.NormalClosure, buffer, true);
+                            }
+                            //response to connection close we can shut down the socket.
+                            else
+                            {
+                                _webSocket.HardClose();   
+                            }
+                            break;
+                    }
+                }
+                else
+                {
+                    if (messageFrame.Error)
+                    {
+                        Debug.WriteLine($"Error message from '{_webSocket.RemoteEndPoint}' error - {messageFrame.ErrorMessage}");
+
+                        _webSocket.RawClose(messageFrame.CloseStatus, Encoding.UTF8.GetBytes(messageFrame.ErrorMessage), true);
+                    }
+                    else
+                    {
+                        messageFrame.Buffer = _webSocket.WebSocketReceiver.ReadBuffer(messageFrame.MessageLength, messageFrame.Masks);
+
+                        _webSocket.LastContactTimeStamp = DateTime.UtcNow;
+
+                        OnNewMessage(messageFrame);
+                    }
+                }
+            }
         }
 
 
@@ -129,33 +155,42 @@ namespace System.Net.WebSockets
             receiveThread.Suspend();
 #pragma warning restore S3889 // Neither "Thread.Resume" nor "Thread.Suspend" should be used
 
-            //Controlling ping and ControllerMessagesTimeout
-            if (_webSocket.Pinging
-                && _webSocket.PingTime.Add(_webSocket.ServerTimeout) < DateTime.UtcNow)
+            try
             {
-                _webSocket.RawClose(WebSocketCloseStatus.PolicyViolation, Encoding.UTF8.GetBytes("Ping timeout"), true);
+                //Controlling ping and ControllerMessagesTimeout
+                if (_webSocket.Pinging
+                    && _webSocket.PingTime.Add(_webSocket.ServerTimeout) < DateTime.UtcNow)
+                {
+                    _webSocket.RawClose(WebSocketCloseStatus.PolicyViolation, Encoding.UTF8.GetBytes("Ping timeout"), true);
 
-                Debug.WriteLine($"{_webSocket.RemoteEndPoint} ping timed out");
+                    Debug.WriteLine($"{_webSocket.RemoteEndPoint} ping timed out");
+                }
+
+                if (_webSocket.State == WebSocketFrame.WebSocketState.CloseSent
+                    && _webSocket.ClosingTime.Add(_webSocket.ServerTimeout) < DateTime.UtcNow)
+                {
+                    _webSocket.HardClose();
+                }
+
+                if (_webSocket.KeepAliveInterval != Timeout.InfiniteTimeSpan
+                    && _webSocket.State != WebSocketFrame.WebSocketState.CloseSent
+                    && !_webSocket.Pinging
+                    && _webSocket.LastContactTimeStamp.Add(_webSocket.KeepAliveInterval) < DateTime.UtcNow)
+                {
+                    _webSocket.SendPing();
+                }
             }
-
-            if (_webSocket.State == WebSocketFrame.WebSocketState.CloseSent
-                && _webSocket.ClosingTime.Add(_webSocket.ServerTimeout) < DateTime.UtcNow)
+            catch (Exception ex)
             {
-                _webSocket.HardClose();
+                Debug.WriteLine($"{_webSocket.RemoteEndPoint} error checking timeouts: {ex.Message}");
             }
-
-            if (_webSocket.KeepAliveInterval != Timeout.InfiniteTimeSpan
-                && _webSocket.State != WebSocketFrame.WebSocketState.CloseSent
-                && !_webSocket.Pinging
-                && _webSocket.LastContactTimeStamp.Add(_webSocket.KeepAliveInterval) < DateTime.UtcNow)
+            finally
             {
-                _webSocket.SendPing();
-            }
-
+                // always resume the receive thread, otherwise it will be left suspended forever
 #pragma warning disable S3889 // OK to use in .NET nanoFramework context
-            receiveThread.Resume();
+                receiveThread.Resume();
 #pragma warning restore S3889 // Neither "Thread.Resume" nor "Thread.Suspend" should be used
-
+            }
         }
 
         private void OnNewMessage(ReceiveMessageFrame message)

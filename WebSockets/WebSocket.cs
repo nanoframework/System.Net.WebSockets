@@ -27,6 +27,7 @@ namespace System.Net.WebSockets
 
         internal WebSocketSender _webSocketSender;
         private readonly object _syncLock = new object();
+        private int _hardClosed = 0;
         internal MessageReceivedEventHandler CallbacksMessageReceivedEventHandler;
 
         /// <summary>
@@ -133,6 +134,7 @@ namespace System.Net.WebSockets
             _socket = socket;
             RemoteEndPoint = (IPEndPoint)socket.RemoteEndPoint;
             LastContactTimeStamp = DateTime.UtcNow;
+            _hardClosed = 0;
 
             //start server sending and receiving async
             WebSocketReceiver = new WebSocketReceiver(stream, RemoteEndPoint, this, IsServer, MaxReceiveFrameSize, OnReadError);
@@ -275,15 +277,26 @@ namespace System.Net.WebSockets
 
             if (CloseImmediately)
             {
+                State = WebSocketState.CloseSent;
+                ClosingTime = DateTime.UtcNow;
+
+                // Give it a moment for sending a close message. This will block the thread.
+                // Wait is bounded because the send thread can be stuck on a dead connection.
+                int maxWaitMs = (int)ServerTimeout.TotalMilliseconds;
+
+                if (maxWaitMs <= 0)
+                {
+                    // infinite (or invalid) server timeout, use a sensible default
+                    maxWaitMs = 5000;
+                }
+
                 int msWaited = 0;
 
-                //Give it a moment for sending a close message. This will block the thread.
-                while (!_webSocketSender.CloseMessageSent ) 
+                while (!_webSocketSender.CloseMessageSent
+                       && msWaited < maxWaitMs)
                 {
                     msWaited += 50;
                     Thread.Sleep(50);
-                    State = WebSocketState.CloseSent;
-                    ClosingTime = DateTime.UtcNow;
                 }
 
                 HardClose();
@@ -292,24 +305,36 @@ namespace System.Net.WebSockets
 
         internal void HardClose()
         {
+            // can be called from several threads (receive, send error, timeout checker)
+            // lock-free guard: the timeout checker suspends the receive thread, so a lock here could deadlock
+            if (Interlocked.CompareExchange(ref _hardClosed, 1, 0) != 0)
+            {
+                return;
+            }
+
             State = WebSocketState.Closed;
 
             StopReceiving();
             _webSocketSender.StopSender();
 
             Debug.WriteLine($"Connection - {RemoteEndPoint.ToString()} - Closed");
-         
-            ConnectionClosed?.Invoke(this, new EventArgs());
 
-            //Let the tcp socket linger for a second so it can try and send all data out before final close. 
             try
             {
-                _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Linger, 1);
-                _socket.Close();
+                ConnectionClosed?.Invoke(this, new EventArgs());
             }
-            catch (ObjectDisposedException e)
+            finally
             {
-                Debug.WriteLine("socket could not be closed properly because it was already disposed");
+                //Let the tcp socket linger for a second so it can try and send all data out before final close.
+                try
+                {
+                    _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Linger, 1);
+                    _socket.Close();
+                }
+                catch (ObjectDisposedException e)
+                {
+                    Debug.WriteLine("socket could not be closed properly because it was already disposed");
+                }
             }
         }
 
